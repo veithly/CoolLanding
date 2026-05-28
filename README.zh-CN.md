@@ -6,7 +6,7 @@
 
 如果这个 skill 对你有帮助，欢迎去 [CoolLanding Skill 仓库点 Star](https://github.com/veithly/CoolLanding-Skill)。Star 越多，越容易被其他需要酷炫 Landing Page 的人看到。
 
-[English README](README.md)
+[在线预览](https://veithly.github.io/CoolLanding/) · [Skill 仓库](https://github.com/veithly/CoolLanding-Skill) · [English README](README.md)
 
 ## 预览
 

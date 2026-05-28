@@ -6,7 +6,7 @@ It combines a shader-based dark hero, kinetic typography, a custom cursor, edito
 
 If the skill helps you build a better landing page, please [star the skill repo](https://github.com/veithly/CoolLanding-Skill). It makes the signal easier for other builders to find.
 
-[中文 README](README.zh-CN.md)
+[Live demo](https://veithly.github.io/CoolLanding/) · [Skill repo](https://github.com/veithly/CoolLanding-Skill) · [中文 README](README.zh-CN.md)
 
 ## Preview
 
