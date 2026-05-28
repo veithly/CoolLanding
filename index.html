@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CoolLanding</title>
+    <meta name="description" content="CoolLanding is an open-source WebGL landing page and Codex skill for building cinematic, reference-grade launch pages.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ff3c08' d='M16 2 29 12 24 29H8L3 12z'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <canvas id="signal-field" class="signal-field" aria-hidden="true"></canvas>
+
+    <div class="loader" data-loader aria-live="polite">
+      <div class="loader-core" aria-hidden="true"></div>
+      <div class="loader-copy">
+        <span data-loader-count>/00</span>
+        <p>optimizing perception. making the browser feel less like a brochure.</p>
+      </div>
+      <div class="loader-line"><span data-loader-line></span></div>
+    </div>
+
+    <div class="cursor-dot" data-cursor-dot aria-hidden="true"></div>
+    <div class="cursor-label" data-cursor-label aria-hidden="true">signal</div>
+
+    <header class="topbar" data-reveal>
+      <a class="brand magnetic" href="#origin" aria-label="CoolLanding home">
+        <span class="brand-mark"></span>
+        <span>CoolLanding</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a class="magnetic" href="#origin">Origin</a>
+        <a class="magnetic" href="#interference">Interference</a>
+        <a class="magnetic" href="#rituals">Rituals</a>
+        <a class="magnetic" href="#launch">Launch</a>
+      </nav>
+      <a class="nav-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star skill</a>
+    </header>
+
+    <main>
+      <section class="hero" id="origin" aria-labelledby="hero-title">
+        <div class="ascii-cloud" data-ascii aria-hidden="true"></div>
+
+        <div class="hero-orbit" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="hero-title-wrap" data-reveal>
+          <p class="eyebrow">webgl signal / generated matter / scroll state</p>
+          <h1 id="hero-title" data-scramble="COOL LANDING">COOL LANDING</h1>
+        </div>
+
+        <aside class="hero-query" aria-label="Experience filters" data-reveal>
+          <p>what are you looking for?</p>
+          <a href="#interference">-&gt; cinematic webgl</a>
+          <a href="#interference">-&gt; editorial collision</a>
+          <a href="#rituals">-&gt; handcrafted ritual</a>
+          <a href="#launch">-&gt; launch surface</a>
+        </aside>
+
+        <div class="hero-copy" data-reveal>
+          <p>
+            An open-source landing page and Codex skill for building launch pages that feel like
+            interactive installations: shader-driven dark matter, code texture, brutal editorial
+            collage, and toy-like ritual worlds.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star the skill</a>
+            <a class="secondary-cta magnetic" href="https://github.com/veithly/CoolLanding" target="_blank" rel="noopener">View site repo</a>
+          </div>
+        </div>
+
+        <div class="status-strip" aria-hidden="true">
+          <span>frame 0001</span>
+          <span>open source</span>
+          <span>pointer bends field</span>
+          <span>stars power the signal</span>
+        </div>
+      </section>
+
+      <section class="interference" id="interference" aria-labelledby="interference-title">
+        <div class="section-index" data-reveal>01 / blit-style editorial interference</div>
+        <div class="interference-stage">
+          <div class="big-word" aria-hidden="true">BLINK</div>
+
+          <div class="interference-copy" data-reveal>
+            <p class="eyebrow">white field mode</p>
+          <h2 id="interference-title">Scale, silence, and one open-source interruption.</h2>
+            <p>
+            The reference trick is not decoration. It is composition pressure:
+            giant cropped type, floating media, custom cursor, dead space that feels intentional,
+            and a workflow anyone can fork.
+            </p>
+          </div>
+
+          <figure class="poster spotlight" data-spotlight data-reveal>
+            <img src="assets/generated/interference-poster.png" alt="Black and white interference texture with red-orange organic edge">
+            <figcaption>generated interference poster / mouse-reactive mask</figcaption>
+          </figure>
+
+          <div class="symbol-card magnetic" data-reveal aria-hidden="true">
+            <span class="slash slash-a"></span>
+            <span class="dot"></span>
+            <span class="slash slash-b"></span>
+          </div>
+
+          <div class="micro-copy micro-a" data-reveal>
+            poetics of interference<br>
+            folds in perception<br>
+            human interaction
+          </div>
+
+          <div class="micro-copy micro-b" data-reveal>
+            fork the site<br>
+            install the skill<br>
+            star if it helps
+          </div>
+        </div>
+      </section>
+
+      <section class="rituals" id="rituals" aria-labelledby="rituals-title">
+        <div class="ritual-sticky">
+          <div class="ritual-track" data-ritual-track>
+            <article class="ritual-panel ritual-pink">
+              <div class="ritual-text">
+                <p class="eyebrow">02 / remote ritual one</p>
+                <h2 id="rituals-title">A skill packaged as a toy operating system.</h2>
+                <p>Framer-like charm comes from specificity: chunky shapes, tiny mono notes, saturated backdrops, and instructions concrete enough for another agent to reuse.</p>
+              </div>
+              <img class="ritual-image" src="assets/generated/ritual-platform.png" alt="Colorful 3D remote creative team platform">
+            </article>
+
+            <article class="ritual-panel ritual-blue">
+              <div class="desktop-card" aria-hidden="true">
+                <div class="desktop-bar">
+                  <span></span><span></span><span></span>
+                  <strong>Focus</strong>
+                </div>
+                <div class="desktop-grid">
+                  <span>9AM</span><b>Daily</b>
+                  <span>10AM</span><b>Design review</b>
+                  <span>12PM</span><b>Workshop</b>
+                  <span>3PM</span><b>Demo call</b>
+                </div>
+              </div>
+              <div class="ritual-text">
+                <p class="eyebrow">03 / active state</p>
+                <h2>Scroll pins the world, not the user.</h2>
+                <p>The section moves horizontally while the viewport stays fixed, echoing the way reference sites turn scroll into a scene controller.</p>
+              </div>
+            </article>
+
+            <article class="ritual-panel ritual-green">
+              <div class="ritual-text">
+                <p class="eyebrow">04 / handcrafted exit</p>
+                <h2>Every star keeps the signal visible.</h2>
+                <p>Magnetic controls, shader response, live readouts, and generated assets make the landing page feel operated instead of viewed. Fork it, remix it, and star the skill repo.</p>
+              </div>
+              <div class="sticker-stack" aria-hidden="true">
+                <span>Yoo!</span>
+                <span>MIT licensed</span>
+                <span>star skill</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="launch" id="launch" aria-labelledby="launch-title">
+        <div class="launch-copy" data-reveal>
+          <p class="eyebrow">05 / launch console</p>
+          <h2 id="launch-title">CoolLanding is a reference-grade landing workflow you can fork.</h2>
+          <p>
+            WebGL first. Motion as state. Generated assets as focal material. Typography that
+            decides the composition. Scroll as an editing timeline. A skill repo that turns the
+            research into repeatable agent instructions.
+          </p>
+        </div>
+
+        <div class="launch-readouts">
+          <article data-reveal>
+            <span>website</span>
+            <strong>shader</strong>
+            <p>fragment shader core, pointer distortion, scroll-driven palette</p>
+          </article>
+          <article data-reveal>
+            <span>skill</span>
+            <strong>codex</strong>
+            <p>reference analysis, effect recipes, visual QA rules, and reusable workflow</p>
+          </article>
+          <article data-reveal>
+            <span>community</span>
+            <strong>star</strong>
+            <p>open the skill repo, give it a star, and use it as a launch-page starting point</p>
+          </article>
+        </div>
+
+        <a class="final-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star CoolLanding Skill</a>
+      </section>
+    </main>
+
+    <div class="scroll-meter" aria-hidden="true"><span data-scroll-meter></span></div>
+    <script src="main.js"></script>
+  </body>
+</html>
