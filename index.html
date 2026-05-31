@@ -3,201 +3,1109 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CoolLanding</title>
-    <meta name="description" content="CoolLanding is an open-source WebGL landing page and Codex skill for building cinematic, reference-grade launch pages.">
+    <title>CoolLanding — Anti-Template Framework</title>
+    <meta name="description" content="CoolLanding is an open-source anti-template framework for cinematic landing pages. Compose one Style World + a handful of Mechanics + one Signature Mechanic. Switch between eight live worlds in this demo.">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ff3c08' d='M16 2 29 12 24 29H8L3 12z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="styles.css">
   </head>
-  <body>
-    <canvas id="signal-field" class="signal-field" aria-hidden="true"></canvas>
+  <body data-world="cinematic-dark">
+    <!-- World 1 background canvas (WebGL shader) -->
+    <canvas id="signal-field" class="world-bg world-bg-cinematic" aria-hidden="true"></canvas>
+    <!-- World 2 background canvas (halftone field + cursor lens) -->
+    <canvas id="editorial-field" class="world-bg world-bg-editorial" aria-hidden="true"></canvas>
+    <!-- World 4 background canvas (gold dust + slow drift) -->
+    <canvas id="alcove-field" class="world-bg world-bg-luxury" aria-hidden="true"></canvas>
+    <!-- World 5 background canvas (axonometric field + waterline reflection) -->
+    <canvas id="spatial-field" class="world-bg world-bg-spatial" aria-hidden="true"></canvas>
+    <!-- World 8 background canvas (seeded generative flow-field) -->
+    <canvas id="generative-field" class="world-bg world-bg-generative" aria-hidden="true"></canvas>
 
+    <!-- Cinematic-only loader -->
     <div class="loader" data-loader aria-live="polite">
       <div class="loader-core" aria-hidden="true"></div>
       <div class="loader-copy">
         <span data-loader-count>/00</span>
-        <p>optimizing perception. making the browser feel less like a brochure.</p>
+        <p>compiling worlds. switching is part of the design.</p>
       </div>
       <div class="loader-line"><span data-loader-line></span></div>
     </div>
 
+    <!-- World-aware cursor -->
     <div class="cursor-dot" data-cursor-dot aria-hidden="true"></div>
     <div class="cursor-label" data-cursor-label aria-hidden="true">signal</div>
 
     <header class="topbar" data-reveal>
-      <a class="brand magnetic" href="#origin" aria-label="CoolLanding home">
+      <a class="brand magnetic" href="#cinematic-dark" data-set-world="cinematic-dark" aria-label="CoolLanding home">
         <span class="brand-mark"></span>
         <span>CoolLanding</span>
       </a>
-      <nav class="nav-links" aria-label="Primary navigation">
-        <a class="magnetic" href="#origin">Origin</a>
-        <a class="magnetic" href="#interference">Interference</a>
-        <a class="magnetic" href="#rituals">Rituals</a>
-        <a class="magnetic" href="#launch">Launch</a>
+
+      <nav class="world-switcher" aria-label="Style world switcher">
+        <span class="switcher-label">world</span>
+        <button type="button" class="switcher-btn is-active" data-set-world="cinematic-dark" aria-pressed="true">
+          <span class="switcher-num">01</span>
+          <span class="switcher-name">Cinematic Dark</span>
+        </button>
+        <button type="button" class="switcher-btn" data-set-world="editorial-interference" aria-pressed="false">
+          <span class="switcher-num">02</span>
+          <span class="switcher-name">Editorial</span>
+        </button>
+        <button type="button" class="switcher-btn" data-set-world="ritual-craft" aria-pressed="false">
+          <span class="switcher-num">03</span>
+          <span class="switcher-name">Ritual Craft</span>
+        </button>
+        <button type="button" class="switcher-btn" data-set-world="luxury-alcove" aria-pressed="false">
+          <span class="switcher-num">04</span>
+          <span class="switcher-name">Luxury Alcove</span>
+        </button>
+        <button type="button" class="switcher-btn" data-set-world="spatial-architecture" aria-pressed="false">
+          <span class="switcher-num">05</span>
+          <span class="switcher-name">Spatial</span>
+        </button>
+        <button type="button" class="switcher-btn" data-set-world="festival-kinetic" aria-pressed="false">
+          <span class="switcher-num">06</span>
+          <span class="switcher-name">Festival</span>
+        </button>
+        <button type="button" class="switcher-btn" data-set-world="papercraft-tactile" aria-pressed="false">
+          <span class="switcher-num">07</span>
+          <span class="switcher-name">Papercraft</span>
+        </button>
+        <button type="button" class="switcher-btn" data-set-world="generative-system" aria-pressed="false">
+          <span class="switcher-num">08</span>
+          <span class="switcher-name">Generative</span>
+        </button>
       </nav>
+
       <a class="nav-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star skill</a>
     </header>
 
     <main>
-      <section class="hero" id="origin" aria-labelledby="hero-title">
-        <div class="ascii-cloud" data-ascii aria-hidden="true"></div>
+      <!-- ================================================================== -->
+      <!-- WORLD 01 — Cinematic Dark · Sidewave / Active Theory lineage        -->
+      <!-- ================================================================== -->
+      <section class="world world-cinematic-dark" id="cinematic-dark" aria-labelledby="cinematic-title">
+        <section class="cn-hero" aria-labelledby="cinematic-title">
+          <div class="cn-grid" aria-hidden="true"></div>
+          <div class="ascii-cloud" data-ascii aria-hidden="true"></div>
 
-        <div class="hero-orbit" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+          <div class="cn-hero-frame">
+            <div class="cn-left">
+              <p class="cn-eyebrow">— transmission 01 / cinematic-dark</p>
+              <h1 id="cinematic-title" class="cn-title" data-scramble="COOL/LANDING">COOL/LANDING</h1>
+              <p class="cn-lede">
+                An anti-template framework. Pick a Style World, compose mechanics, ship a brand only that brand could own. Switch the world above — every section reshapes itself.
+              </p>
+              <div class="cn-actions">
+                <a class="cn-cta-primary magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">
+                  <span>Open the skill</span>
+                  <span class="cn-cta-arrow">→</span>
+                </a>
+                <a class="cn-cta-secondary magnetic" href="https://github.com/veithly/CoolLanding" target="_blank" rel="noopener">View site repo</a>
+              </div>
+            </div>
 
-        <div class="hero-title-wrap" data-reveal>
-          <p class="eyebrow">webgl signal / generated matter / scroll state</p>
-          <h1 id="hero-title" data-scramble="COOL LANDING">COOL LANDING</h1>
-        </div>
-
-        <aside class="hero-query" aria-label="Experience filters" data-reveal>
-          <p>what are you looking for?</p>
-          <a href="#interference">-&gt; cinematic webgl</a>
-          <a href="#interference">-&gt; editorial collision</a>
-          <a href="#rituals">-&gt; handcrafted ritual</a>
-          <a href="#launch">-&gt; launch surface</a>
-        </aside>
-
-        <div class="hero-copy" data-reveal>
-          <p>
-            An open-source landing page and Codex skill for building launch pages that feel like
-            interactive installations: shader-driven dark matter, code texture, brutal editorial
-            collage, and toy-like ritual worlds.
-          </p>
-          <div class="hero-actions">
-            <a class="primary-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star the skill</a>
-            <a class="secondary-cta magnetic" href="https://github.com/veithly/CoolLanding" target="_blank" rel="noopener">View site repo</a>
+            <aside class="cn-hud" aria-label="Telemetry">
+              <header>
+                <span class="cn-hud-dot"></span>
+                <span>signal · live</span>
+                <span class="cn-hud-tag" data-frame-counter>frame 0001</span>
+              </header>
+              <dl>
+                <div><dt>world</dt><dd>cinematic-dark</dd></div>
+                <div><dt>mechanics</dt><dd>04 active</dd></div>
+                <div><dt>signature</dt><dd>pointer warps shader</dd></div>
+                <div><dt>palette</dt><dd>black · cyan · ember</dd></div>
+                <div><dt>mode</dt><dd>cursor-driven</dd></div>
+              </dl>
+              <footer>
+                <span>pointer</span>
+                <span data-cn-pointer>0000, 0000</span>
+              </footer>
+            </aside>
           </div>
-        </div>
 
-        <div class="status-strip" aria-hidden="true">
-          <span>frame 0001</span>
-          <span>open source</span>
-          <span>pointer bends field</span>
-          <span>stars power the signal</span>
-        </div>
+          <div class="cn-status">
+            <span data-cn-time>00:00:00</span>
+            <span>shader compiled</span>
+            <span>scroll arms the orbit</span>
+            <span>pointer is the protagonist</span>
+          </div>
+        </section>
+
+        <section class="skill-primitives skill-primitives-cinematic" data-skill-primitives aria-labelledby="cn-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="cn-skill-title">The skill turns a brief into a black-stage WebGL system.</h2>
+            <p>Use this world when a launch needs to feel like software, signal and ceremony. The page is built from one anchor object, not a decorative background.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Cinematic dark landing</h3><p>Compose a GPU-led hero with a loader ritual, technical HUD and one signature pointer effect.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Void · origin · bloom</h3><p>Black stage, luminous core, GPGPU particles, HDR bloom, chromatic composite, grain.</p></article>
+            <article data-reveal><span>proof</span><h3>Renderer channels</h3><p>Time, pointer, scroll and click must change pixels in a real browser before the world is considered alive.</p></article>
+          </div>
+        </section>
+
+        <!-- Chapter: composition manifesto, terminal style -->
+        <section class="cn-chapter" aria-labelledby="cn-ch1-title">
+          <header class="cn-chapter-head">
+            <p class="cn-eyebrow">— chapter 01 / composition</p>
+            <h2 id="cn-ch1-title" class="cn-h2">A void with one luminous object.</h2>
+          </header>
+          <div class="cn-chapter-body">
+            <article class="cn-card" data-reveal>
+              <div class="cn-card-num">01</div>
+              <h3>webgl-shader-field</h3>
+              <p>A fragment shader with pointer, scroll, and time uniforms. The brand is the way the field reacts.</p>
+              <code>// uniforms u_mouse, u_scroll, u_time</code>
+            </article>
+            <article class="cn-card" data-reveal>
+              <div class="cn-card-num">02</div>
+              <h3>loader-ritual</h3>
+              <p>A morphing core + count + line. The site opens like a piece of software, not a website.</p>
+              <code>boot.percent → 100; pulse = 1</code>
+            </article>
+            <article class="cn-card" data-reveal>
+              <div class="cn-card-num">03</div>
+              <h3>scramble-text</h3>
+              <p>The wordmark resolves from noise on first paint and on hover. Identity earned, not declared.</p>
+              <code>resolve('COOL/LANDING')</code>
+            </article>
+            <article class="cn-card" data-reveal>
+              <div class="cn-card-num">04</div>
+              <h3>signature: warped void</h3>
+              <p>The cursor bends the shader. The only mechanic this brand could own.</p>
+              <code>uv -= mouseDir * 0.08</code>
+            </article>
+          </div>
+        </section>
+
+        <!-- Chapter 02: the signature mechanic, made legible + live -->
+        <section class="cn-chapter cn-orbit" aria-labelledby="cn-ch2-title">
+          <header class="cn-chapter-head">
+            <p class="cn-eyebrow">— chapter 02 / signature</p>
+            <h2 id="cn-ch2-title" class="cn-h2">Scroll arms the orbit.</h2>
+          </header>
+          <div class="cn-orbit-body">
+            <div class="cn-orbit-copy" data-reveal>
+              <p class="cn-orbit-lede">
+                Scroll is not navigation here — it is throttle. As you descend, the camera dollies into the swarm,
+                the orbit accelerates, and the bloom swells. Click anywhere to fire a shockwave through the field.
+              </p>
+              <div class="cn-bars">
+                <div class="cn-bar"><span>orbit</span><i><b data-orbit-bar="orbit"></b></i><em data-orbit-val="orbit">0%</em></div>
+                <div class="cn-bar"><span>dolly</span><i><b data-orbit-bar="dolly"></b></i><em data-orbit-val="dolly">0%</em></div>
+                <div class="cn-bar"><span>bloom</span><i><b data-orbit-bar="bloom"></b></i><em data-orbit-val="bloom">0%</em></div>
+              </div>
+            </div>
+            <aside class="cn-orbit-readout" aria-hidden="true">
+              <header><span class="cn-hud-dot"></span><span>field · live</span></header>
+              <dl>
+                <div><dt>particles</dt><dd data-orbit-particles>16,384</dd></div>
+                <div><dt>camera.z</dt><dd data-orbit-camz>3.20</dd></div>
+                <div><dt>shock</dt><dd data-orbit-shock>0.00</dd></div>
+                <div><dt>blend</dt><dd>additive HDR</dd></div>
+                <div><dt>passes</dt><dd>sim · pts · bright · blur×3 · comp</dd></div>
+              </dl>
+            </aside>
+          </div>
+        </section>
+
+        <!-- Stat band: numbers count up on reveal -->
+        <section class="cn-stats" aria-label="System stats">
+          <div class="cn-stat" data-reveal><b data-count="16384">0</b><span>GPU particles</span></div>
+          <div class="cn-stat" data-reveal><b data-count="6">0</b><span>render passes</span></div>
+          <div class="cn-stat" data-reveal><b data-count="60" data-count-suffix="fps">0</b><span>target frame-rate</span></div>
+          <div class="cn-stat" data-reveal><b data-count="8">0</b><span>style worlds</span></div>
+        </section>
+
+        <!-- Chapter 03: the render pipeline, as a numbered ladder -->
+        <section class="cn-chapter cn-pipeline" aria-labelledby="cn-ch3-title">
+          <header class="cn-chapter-head">
+            <p class="cn-eyebrow">— chapter 03 / pipeline</p>
+            <h2 id="cn-ch3-title" class="cn-h2">Six passes, one frame.</h2>
+          </header>
+          <ol class="cn-ladder">
+            <li class="cn-rung" data-reveal><span class="cn-rung-n">01</span><div><h3>GPGPU simulation</h3><p>Curl-noise advects every particle inside a floating-point FBO, ping-ponged each frame.</p></div><code>pos₁ = sim(pos₀, curl, attractor, shock)</code></li>
+            <li class="cn-rung" data-reveal><span class="cn-rung-n">02</span><div><h3>HDR points</h3><p>Positions are drawn as additive points through a real perspective camera into a half-float scene buffer.</p></div><code>blendFunc(ONE, ONE)</code></li>
+            <li class="cn-rung" data-reveal><span class="cn-rung-n">03</span><div><h3>Bright-pass</h3><p>Only highlights above threshold survive into the bloom chain — the rest goes dark.</p></div><code>if (luma &lt; 0.62) discard</code></li>
+            <li class="cn-rung" data-reveal><span class="cn-rung-n">04</span><div><h3>Separable blur ×3</h3><p>A ping-ponged Gaussian with a growing radius builds soft, wide bloom cheaply.</p></div><code>blur(H) → blur(V), r += 1</code></li>
+            <li class="cn-rung" data-reveal><span class="cn-rung-n">05</span><div><h3>Filmic composite</h3><p>Scene + bloom are tone-mapped, then chromatic aberration shifts the channels.</p></div><code>tonemap(scene + bloom·k)</code></li>
+            <li class="cn-rung" data-reveal><span class="cn-rung-n">06</span><div><h3>Grain &amp; vignette</h3><p>A final film grain and vignette glue the frame together — never a flat gradient.</p></div><code>+ grain(uv, t) · vignette</code></li>
+          </ol>
+        </section>
+
+        <!-- World footer: terminal end-of-transmission -->
+        <footer class="cn-footer" aria-label="World 01 footer">
+          <div class="cn-footer-frame">
+            <div class="cn-footer-left">
+              <p class="cn-eyebrow">— end of transmission</p>
+              <h2 class="cn-h2">Switch the world to keep watching.</h2>
+              <p class="cn-footer-lede">
+                Every world has its own footer. This is the terminal you exit through. Pick another world above to see a different ending.
+              </p>
+            </div>
+            <div class="cn-footer-stack">
+              <div class="cn-footer-row"><span>build</span><b>v1.0.0</b></div>
+              <div class="cn-footer-row"><span>mechanics</span><b>40+</b></div>
+              <div class="cn-footer-row"><span>worlds</span><b>08</b></div>
+              <div class="cn-footer-row"><span>license</span><b>MIT</b></div>
+              <div class="cn-footer-row"><span>uptime</span><b data-cn-uptime>00:00</b></div>
+            </div>
+          </div>
+          <div class="cn-footer-marquee" aria-hidden="true">
+            <span>COOL/LANDING · ANTI-TEMPLATE · COMPOSE NOT COPY · COOL/LANDING · ANTI-TEMPLATE · COMPOSE NOT COPY · </span>
+          </div>
+          <div class="cn-footer-base">
+            <span>© CoolLanding Skill · open source</span>
+            <a href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">github.com/veithly/CoolLanding-Skill ↗</a>
+          </div>
+        </footer>
       </section>
 
-      <section class="interference" id="interference" aria-labelledby="interference-title">
-        <div class="section-index" data-reveal>01 / blit-style editorial interference</div>
-        <div class="interference-stage">
-          <div class="big-word" aria-hidden="true">BLINK</div>
+      <!-- ================================================================== -->
+      <!-- WORLD 02 — Editorial Interference · Blit Studio lineage             -->
+      <!-- ================================================================== -->
+      <section class="world world-editorial-interference" id="editorial-interference" aria-labelledby="editorial-title">
+        <!-- Masthead, like a real magazine -->
+        <div class="ed-masthead">
+          <span class="ed-mast-num">issue №02</span>
+          <span class="ed-mast-title">EDITORIAL INTERFERENCE</span>
+          <span class="ed-mast-date">may. mmxxvi</span>
+        </div>
 
-          <div class="interference-copy" data-reveal>
-            <p class="eyebrow">white field mode</p>
-          <h2 id="interference-title">Scale, silence, and one open-source interruption.</h2>
-            <p>
-            The reference trick is not decoration. It is composition pressure:
-            giant cropped type, floating media, custom cursor, dead space that feels intentional,
-            and a workflow anyone can fork.
+        <section class="ed-hero">
+          <div class="ed-megaword" aria-hidden="true">FORK&shy;ABLE</div>
+
+          <figure class="ed-portrait" data-reveal>
+            <img src="assets/editorial-portrait-halftone-cut.png" alt="A young person looking up, treated in halftone print" loading="eager">
+            <figcaption>
+              <span>Plate 01</span>
+              <em>"A reader, not yet a user."</em>
+            </figcaption>
+            <img class="ed-marks ed-marks-portrait" src="assets/editorial-marks-cut.png" alt="" aria-hidden="true">
+          </figure>
+
+          <div class="ed-headline-wrap" data-reveal>
+            <p class="ed-eyebrow">— world 02 / editorial-interference / type-anchored</p>
+            <h1 id="editorial-title" class="ed-headline">
+              White space is the layout.<br>
+              The wordmark is the building.<br>
+              <em>The cursor is the lens.</em>
+            </h1>
+            <p class="ed-deck">
+              An editorial design language for brands that compete on taste. Heavy type, one hot accent, photographs treated like print. Hover anywhere to reveal the grid.
             </p>
           </div>
 
-          <figure class="poster spotlight" data-spotlight data-reveal>
-            <img src="assets/generated/interference-poster.png" alt="Black and white interference texture with red-orange organic edge">
-            <figcaption>generated interference poster / mouse-reactive mask</figcaption>
+          <div class="ed-meta" data-reveal>
+            <div class="ed-meta-col">
+              <span>Composition</span>
+              <p>cropped-mega-type · halftone-photo · cursor-lens · scribble-marks · marquee-ticker</p>
+            </div>
+            <div class="ed-meta-col">
+              <span>Signature</span>
+              <p>"A cursor that magnifies the typographic grid only on hover, like a loupe on a print proof."</p>
+            </div>
+            <div class="ed-meta-col">
+              <span>Palette</span>
+              <p>paper · ink · one hot interrupt <em>(#ff3c08)</em>. nothing else.</p>
+            </div>
+          </div>
+
+          <div class="ed-marquee" aria-hidden="true">
+            <span>STUDIO LAUNCH · MAGAZINE PAGE · BRAVE TYPE · HOT INTERRUPT · CURSOR IS THE LENS · GRID REVEALED · STUDIO LAUNCH · MAGAZINE PAGE · BRAVE TYPE · HOT INTERRUPT · CURSOR IS THE LENS · GRID REVEALED · </span>
+          </div>
+        </section>
+
+        <section class="skill-primitives skill-primitives-editorial" data-skill-primitives aria-labelledby="ed-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="ed-skill-title">The skill writes the page like an art-directed magazine spread.</h2>
+            <p>Use this world when taste, typography and cultural signal matter more than a feature checklist. The grid is visible, intentional and a little confrontational.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Editorial landing</h3><p>Transform a brand into a masthead, contents page and proof sheet with a cursor-led reading rhythm.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Wordmark · plate · loupe</h3><p>Cropped display type, halftone imagery, one hot accent, print captions, table-of-contents rows.</p></article>
+            <article data-reveal><span>proof</span><h3>Layout pressure</h3><p>The headline must crop without breaking; pointer movement should shift the portrait and reveal the lens.</p></article>
+          </div>
+        </section>
+
+        <!-- Contents — a real magazine table of contents -->
+        <section class="ed-contents" aria-labelledby="ed-contents-title">
+          <header class="ed-contents-head" data-reveal>
+            <p class="ed-eyebrow">— in this issue / contents</p>
+            <h2 id="ed-contents-title" class="ed-h2">Contents</h2>
+          </header>
+          <ol class="ed-toc">
+            <li class="ed-toc-row" data-reveal>
+              <span class="ed-toc-n">01</span>
+              <div class="ed-toc-main"><h3>The cursor is the lens</h3><p>How a loupe reveals the typographic grid — only when invited.</p></div>
+              <span class="ed-toc-lead" aria-hidden="true"></span>
+              <span class="ed-toc-page"><b data-count="12">00</b></span>
+            </li>
+            <li class="ed-toc-row" data-reveal>
+              <span class="ed-toc-n">02</span>
+              <div class="ed-toc-main"><h3>White space is the layout</h3><p>Why the editorial world refuses gradients and parallax cliché.</p></div>
+              <span class="ed-toc-lead" aria-hidden="true"></span>
+              <span class="ed-toc-page"><b data-count="24">00</b></span>
+            </li>
+            <li class="ed-toc-row" data-reveal>
+              <span class="ed-toc-n">03</span>
+              <div class="ed-toc-main"><h3>One hot interrupt</h3><p>A single accent (#ff3c08) carries every italic, mark and edge.</p></div>
+              <span class="ed-toc-lead" aria-hidden="true"></span>
+              <span class="ed-toc-page"><b data-count="33">00</b></span>
+            </li>
+            <li class="ed-toc-row" data-reveal>
+              <span class="ed-toc-n">04</span>
+              <div class="ed-toc-main"><h3>Photographs treated like print</h3><p>Halftone plates, captions, and the discipline of a grid.</p></div>
+              <span class="ed-toc-lead" aria-hidden="true"></span>
+              <span class="ed-toc-page"><b data-count="41">00</b></span>
+            </li>
+            <li class="ed-toc-row" data-reveal>
+              <span class="ed-toc-n">05</span>
+              <div class="ed-toc-main"><h3>Colophon &amp; credits</h3><p>Set in serif and mono, printed in paper-ink. Filed under taste.</p></div>
+              <span class="ed-toc-lead" aria-hidden="true"></span>
+              <span class="ed-toc-page"><b data-count="58">00</b></span>
+            </li>
+          </ol>
+        </section>
+
+        <!-- Editorial stage: 2-column magazine spread -->
+        <section class="ed-spread">
+          <article class="ed-feature" data-reveal>
+            <span class="ed-feature-num">F.01</span>
+            <p class="ed-eyebrow">— feature one</p>
+            <h2 class="ed-h2">Read the page. Don't decorate it.</h2>
+            <p class="ed-body ed-dropcap">
+              The editorial world rejects gradient overlays and parallax cliché. The hierarchy is the design: a portrait, a wordmark, a lede, and one accent. Anything else is interference.
+            </p>
+            <p class="ed-body">
+              Like a magazine spread, every element earns its position. The cursor reveals the underlying grid — visible only when invited.
+            </p>
+          </article>
+
+          <figure class="ed-still" data-spotlight data-reveal>
+            <img src="assets/editorial-still-life-cut.png" alt="A fractured ceramic vase in halftone treatment" loading="lazy">
+            <span class="ed-still-tag">Plate 02</span>
+            <div class="ed-still-grid" aria-hidden="true"></div>
+            <img class="ed-marks ed-marks-still" src="assets/editorial-marks-cut.png" alt="" aria-hidden="true">
+          </figure>
+        </section>
+
+        <!-- Pull quote, magazine style -->
+        <section class="ed-pullquote" data-reveal>
+          <p class="ed-quote-mark" aria-hidden="true">"</p>
+          <p>If three studios use the same gradient, none of them designed it. The framework demands a Signature Mechanic — one thing only your brand could ship.</p>
+          <p class="ed-quote-by">— Anti-Template Manifesto, §2</p>
+        </section>
+
+        <!-- Three-column credits / colophon style -->
+        <section class="ed-columns">
+          <article class="ed-col" data-reveal>
+            <span class="ed-col-num">F.02</span>
+            <h3>Cropped mega-type</h3>
+            <p>Display type at <em>30vw</em>, cropped past the edge. Reads as building, not as headline.</p>
+          </article>
+          <article class="ed-col" data-reveal>
+            <span class="ed-col-num">F.03</span>
+            <h3>Cursor lens</h3>
+            <p>A circle of grain that follows the cursor. Reveals the typographic grid only on hover.</p>
+          </article>
+          <article class="ed-col" data-reveal>
+            <span class="ed-col-num">F.04</span>
+            <h3>Hot interrupt</h3>
+            <p>One color does the work. <em class="ed-hot">#ff3c08</em> for italics, marks, edges. Nothing else.</p>
+          </article>
+        </section>
+
+        <!-- World footer: magazine colophon -->
+        <footer class="ed-footer" aria-label="World 02 footer">
+          <div class="ed-footer-rule"></div>
+          <div class="ed-footer-grid">
+            <div class="ed-footer-block">
+              <p class="ed-eyebrow">— colophon</p>
+              <h2 class="ed-h2">Issue 02 — Editorial Interference.</h2>
+              <p class="ed-body">
+                Set in serif and monospace, printed in paper-ink with one hot interrupt. An open-source pattern. No gradients harmed in the making of this page.
+              </p>
+            </div>
+            <dl class="ed-footer-credits">
+              <div><dt>Editor-in-chief</dt><dd>You</dd></div>
+              <div><dt>Art direction</dt><dd>CoolLanding Skill</dd></div>
+              <div><dt>Set in</dt><dd>Serif &amp; Mono</dd></div>
+              <div><dt>Printed on</dt><dd>The Web</dd></div>
+              <div><dt>License</dt><dd>MIT</dd></div>
+              <div><dt>Filed</dt><dd>May ’26</dd></div>
+            </dl>
+          </div>
+          <a class="ed-final-cta" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">
+            <span>Subscribe to the skill</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+          <p class="ed-footer-base">— end of issue 02 / fork it · keep it · disagree with it</p>
+        </footer>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- WORLD 03 — Ritual Craft · Aimee's Papercraft / Remote Rituals       -->
+      <!-- ================================================================== -->
+      <section class="world world-ritual-craft" id="ritual-craft" aria-labelledby="ritual-title">
+        <section class="rc-hero" data-reveal>
+          <!-- Decorative doodle layer that washes the page in tactile marks -->
+          <img class="rc-doodle rc-doodle-tl" src="assets/ritual-doodles-cut.png" alt="" aria-hidden="true">
+          <img class="rc-doodle rc-doodle-br" src="assets/ritual-doodles-cut.png" alt="" aria-hidden="true">
+
+          <div class="rc-eyebrow">
+            <span class="rc-tape">— world 03 / ritual-craft / sticker-anchored</span>
+          </div>
+
+          <h1 id="ritual-title" class="rc-headline">
+            A skill packaged like<br>
+            <span class="rc-headline-emph">your favorite sticker pack.</span>
+          </h1>
+
+          <figure class="rc-sticker-pack" data-reveal>
+            <img src="assets/ritual-stickers-cut.png" alt="Pack of stickers including VIBES, FORK ME, OPEN SOURCE, SHIP IT, MIT and a green checkmark" loading="eager">
+            <figcaption>Tap any sticker below to stamp it. Stamps persist across reloads.</figcaption>
           </figure>
 
-          <div class="symbol-card magnetic" data-reveal aria-hidden="true">
-            <span class="slash slash-a"></span>
-            <span class="dot"></span>
-            <span class="slash slash-b"></span>
+          <div class="rc-stickers" data-stamp-stage>
+            <button class="rc-sticker rc-sticker-pink rc-wobble" data-stamp="yoo">YOO!</button>
+            <button class="rc-sticker rc-sticker-blue rc-wobble" data-stamp="ship">SHIP IT</button>
+            <button class="rc-sticker rc-sticker-yellow rc-wobble" data-stamp="mit">MIT</button>
+            <button class="rc-sticker rc-sticker-green rc-wobble" data-stamp="fork">FORK ME</button>
+            <button class="rc-sticker rc-sticker-orange rc-wobble" data-stamp="star">STAR</button>
           </div>
 
-          <div class="micro-copy micro-a" data-reveal>
-            poetics of interference<br>
-            folds in perception<br>
-            human interaction
+          <div class="rc-readout">
+            <div><span>composition</span><p>sticker-stack · wobble-on-hover · pinned-horizontal-track · paper-texture-bg · doodle-layer</p></div>
+            <div><span>signature</span><p>"A cursor that drops the brand's stickers wherever you click and remembers them on reload."</p></div>
+          </div>
+        </section>
+
+        <section class="skill-primitives skill-primitives-ritual" data-skill-primitives aria-labelledby="rc-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="rc-skill-title">The skill makes a landing page feel handled, stamped and kept.</h2>
+            <p>Use this world for community tools, remote rituals and open-source projects that need warmth and participation before polish.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Ritual craft launch</h3><p>Package the brand as a tactile operating system with persistence, checklist state and a stampable surface.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Sticker · window · clipboard</h3><p>Saturated panels, desktop-window metaphors, chunky borders, doodle layers, paper texture.</p></article>
+            <article data-reveal><span>proof</span><h3>Interaction memory</h3><p>Stamps and checklist ticks must stay scoped to this world and survive reloads without leaking elsewhere.</p></article>
+          </div>
+        </section>
+
+        <!-- Tactile checklist — tick items, they wobble + persist on reload -->
+        <section class="rc-checklist-section" aria-labelledby="rc-list-title">
+          <div class="rc-clipboard">
+            <span class="rc-clip" aria-hidden="true"></span>
+            <header class="rc-list-head">
+              <h2 id="rc-list-title">Today's rituals</h2>
+              <span class="rc-list-prog"><b data-ritual-done>0</b>/<span data-ritual-total>5</span> done</span>
+            </header>
+            <ul class="rc-list" data-ritual-list>
+              <li><button type="button" class="rc-check" data-ritual-item="standup"><span class="rc-box"></span><span class="rc-check-label">Stand-up &amp; coffee</span></button></li>
+              <li><button type="button" class="rc-check" data-ritual-item="design"><span class="rc-box"></span><span class="rc-check-label">Design review</span></button></li>
+              <li><button type="button" class="rc-check" data-ritual-item="ship"><span class="rc-box"></span><span class="rc-check-label">Ship one thing</span></button></li>
+              <li><button type="button" class="rc-check" data-ritual-item="walk"><span class="rc-box"></span><span class="rc-check-label">Walk around the block</span></button></li>
+              <li><button type="button" class="rc-check" data-ritual-item="star"><span class="rc-box"></span><span class="rc-check-label">Star the skill ⭐</span></button></li>
+            </ul>
+            <p class="rc-list-foot">tick anything — your list persists on reload, just like the stamps.</p>
+          </div>
+          <aside class="rc-list-aside" data-reveal>
+            <span class="rc-tape">— why a checklist?</span>
+            <p>Warmth beats polish. A page that lets you <em>do</em> something — tick a box, drop a sticker — feels co-authored. That's the whole ritual-craft thesis: tactile, persistent, a little silly.</p>
+            <div class="rc-list-doodle" aria-hidden="true">✶ ✦ ✷</div>
+          </aside>
+        </section>
+
+        <section class="rc-track-section">
+          <div class="rc-track-sticky">
+            <div class="rc-track" data-ritual-track>
+              <article class="rc-panel rc-panel-pink">
+                <div class="rc-panel-text">
+                  <p class="rc-panel-num">01 / ritual one</p>
+                  <h2>Morning kickoff with a saturated tab.</h2>
+                  <p>Each panel is one color, one mood, one tool. Pinned horizontal scenes turn vertical scroll into a sticker story.</p>
+                </div>
+                <div class="rc-window">
+                  <div class="rc-window-bar"><span></span><span></span><span></span><strong>Focus</strong></div>
+                  <div class="rc-window-grid">
+                    <span>09:00</span><b>Standup</b>
+                    <span>10:30</span><b>Design review</b>
+                    <span>12:00</span><b>Workshop</b>
+                    <span>15:00</span><b>Demo call</b>
+                  </div>
+                </div>
+              </article>
+
+              <article class="rc-panel rc-panel-blue">
+                <div class="rc-panel-text">
+                  <p class="rc-panel-num">02 / ritual two</p>
+                  <h2>Cards that act like real stickers.</h2>
+                  <p>The wobble on hover, the offset shadow, the 3px black border. Tiny choices that read as tactile.</p>
+                </div>
+                <div class="rc-tape-stack" aria-hidden="true">
+                  <span class="rc-tape-card rc-tape-1">SUNDAY</span>
+                  <span class="rc-tape-card rc-tape-2">MONDAY</span>
+                  <span class="rc-tape-card rc-tape-3">TUESDAY</span>
+                </div>
+              </article>
+
+              <article class="rc-panel rc-panel-yellow">
+                <div class="rc-panel-text">
+                  <p class="rc-panel-num">03 / ritual three</p>
+                  <h2>Open-source toy operating system.</h2>
+                  <p>The skill teaches the agent to build worlds like this — for community products, remote work tools, anything that lives on warmth.</p>
+                </div>
+                <a class="rc-cta" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star the skill →</a>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- World footer: guestbook with sticker wall -->
+        <footer class="rc-footer" aria-label="World 03 footer">
+          <img class="rc-doodle rc-doodle-footer" src="assets/ritual-doodles-cut.png" alt="" aria-hidden="true">
+          <div class="rc-footer-eyebrow"><span class="rc-tape">— sign the guestbook</span></div>
+          <h2 class="rc-footer-h">Leave a stamp.<br>Take a sticker.</h2>
+          <p class="rc-footer-lede">Click the stickers above to stamp the page. Your marks persist after reload — proof the brand and the visitor co-author the page.</p>
+
+          <div class="rc-stamp-meter">
+            <span>you've placed <b data-stamp-count>0</b> marks</span>
+            <button type="button" class="rc-clear magnetic" data-stamp-clear>clear the wall</button>
           </div>
 
-          <div class="micro-copy micro-b" data-reveal>
-            fork the site<br>
-            install the skill<br>
-            star if it helps
+          <div class="rc-guestbook">
+            <span class="rc-gb-entry rc-gb-pink">YOO!</span>
+            <span class="rc-gb-entry rc-gb-blue">SHIP IT</span>
+            <span class="rc-gb-entry rc-gb-yellow">MIT</span>
+            <span class="rc-gb-entry rc-gb-green">FORK ME</span>
+            <span class="rc-gb-entry rc-gb-orange">STAR</span>
+            <span class="rc-gb-entry rc-gb-hand">— xoxo from the skill</span>
           </div>
-        </div>
+
+          <div class="rc-footer-base">
+            <span>made on paper. shipped on the web.</span>
+            <a href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">github.com/veithly/CoolLanding-Skill →</a>
+          </div>
+        </footer>
       </section>
 
-      <section class="rituals" id="rituals" aria-labelledby="rituals-title">
-        <div class="ritual-sticky">
-          <div class="ritual-track" data-ritual-track>
-            <article class="ritual-panel ritual-pink">
-              <div class="ritual-text">
-                <p class="eyebrow">02 / remote ritual one</p>
-                <h2 id="rituals-title">A skill packaged as a toy operating system.</h2>
-                <p>Framer-like charm comes from specificity: chunky shapes, tiny mono notes, saturated backdrops, and instructions concrete enough for another agent to reuse.</p>
-              </div>
-              <img class="ritual-image" src="assets/generated/ritual-platform.png" alt="Colorful 3D remote creative team platform">
-            </article>
-
-            <article class="ritual-panel ritual-blue">
-              <div class="desktop-card" aria-hidden="true">
-                <div class="desktop-bar">
-                  <span></span><span></span><span></span>
-                  <strong>Focus</strong>
-                </div>
-                <div class="desktop-grid">
-                  <span>9AM</span><b>Daily</b>
-                  <span>10AM</span><b>Design review</b>
-                  <span>12PM</span><b>Workshop</b>
-                  <span>3PM</span><b>Demo call</b>
-                </div>
-              </div>
-              <div class="ritual-text">
-                <p class="eyebrow">03 / active state</p>
-                <h2>Scroll pins the world, not the user.</h2>
-                <p>The section moves horizontally while the viewport stays fixed, echoing the way reference sites turn scroll into a scene controller.</p>
-              </div>
-            </article>
-
-            <article class="ritual-panel ritual-green">
-              <div class="ritual-text">
-                <p class="eyebrow">04 / handcrafted exit</p>
-                <h2>Every star keeps the signal visible.</h2>
-                <p>Magnetic controls, shader response, live readouts, and generated assets make the landing page feel operated instead of viewed. Fork it, remix it, and star the skill repo.</p>
-              </div>
-              <div class="sticker-stack" aria-hidden="true">
-                <span>Yoo!</span>
-                <span>MIT licensed</span>
-                <span>star skill</span>
-              </div>
-            </article>
+      <!-- ================================================================== -->
+      <!-- WORLD 04 — Luxury Alcove · Cartier Watches & Wonders lineage        -->
+      <!-- ================================================================== -->
+      <section class="world world-luxury-alcove" id="luxury-alcove" aria-labelledby="luxury-title">
+        <section class="lx-hero">
+          <div class="lx-ornament-wrap" aria-hidden="true">
+            <img class="lx-ornament" src="assets/luxury-ornament.png" alt="" loading="eager">
           </div>
-        </div>
+
+          <div class="lx-hero-content" data-reveal>
+            <p class="lx-eyebrow">— maison / alcove iv</p>
+            <h1 id="luxury-title" class="lx-headline">
+              An atelier for landing pages<br>
+              <em>that never look templated.</em>
+            </h1>
+            <div class="lx-rule" aria-hidden="true"></div>
+            <p class="lx-lede">
+              Each brand earns its own alcove — a self-contained room with its own material,
+              its own light, its own quiet score. Scroll between alcoves like rooms in a private museum.
+            </p>
+            <button class="lx-audio-toggle magnetic" type="button" data-audio-toggle aria-pressed="false">
+              <span class="lx-audio-dot"></span>
+              <span class="lx-audio-label">enable the score</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="skill-primitives skill-primitives-luxury" data-skill-primitives aria-labelledby="lx-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="lx-skill-title">The skill turns a premium brief into a sequence of quiet rooms.</h2>
+            <p>Use this world for luxury, heritage or object-led brands where restraint, material and pacing must carry the value.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Luxury alcove journey</h3><p>Compose one room per promise, each with its own material palette, object and deliberate transition.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Alcove · object · score</h3><p>Serif cadence, brass rules, cutout product, mirror reflection, restrained Web Audio, slow activation.</p></article>
+            <article data-reveal><span>proof</span><h3>Material restraint</h3><p>Every room needs a distinct material cue; animation should read as breath, not spectacle.</p></article>
+          </div>
+        </section>
+
+        <!-- Showcase: signature product framed like jewelry -->
+        <section class="lx-showcase">
+          <figure class="lx-product" data-reveal data-lx-parallax>
+            <span class="lx-product-glow" aria-hidden="true"></span>
+            <img class="lx-product-img" src="assets/luxury-watch-macro-cut.png" alt="A roman-numeral wristwatch in rose gold, photographed close-up" loading="lazy">
+            <img class="lx-product-mirror" src="assets/luxury-watch-macro-cut.png" alt="" aria-hidden="true">
+            <figcaption>
+              <span class="lx-product-cap">Mécanique №01</span>
+              <em>"The Signature Mechanic. Every brand needs one."</em>
+            </figcaption>
+          </figure>
+          <div class="lx-showcase-side" data-reveal>
+            <p class="lx-eyebrow">— composition</p>
+            <h2 class="lx-h2">A room. A material. A score.</h2>
+            <p class="lx-body">
+              The luxury world refuses neon. Each section earns one micro-palette — ivory, oxblood, brass — and one material. Reflection is the only kinetic decoration permitted.
+            </p>
+            <dl class="lx-spec">
+              <div><dt>palette</dt><dd>ivory · oxblood · brass</dd></div>
+              <div><dt>type</dt><dd>serif italic, large counters</dd></div>
+              <div><dt>motion</dt><dd>1500–3500ms eased</dd></div>
+              <div><dt>audio</dt><dd>web-audio drone score</dd></div>
+              <div><dt>signature</dt><dd>circle gesture rotates the room</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- Alcove rooms gallery -->
+        <section class="lx-rooms" aria-labelledby="lx-rooms-title">
+          <header class="lx-rooms-head">
+            <p class="lx-eyebrow">— gallery / three alcoves</p>
+            <h2 id="lx-rooms-title" class="lx-h2">Walk the private museum.</h2>
+          </header>
+
+          <article class="lx-room" data-reveal>
+            <div class="lx-room-num">I.</div>
+            <div class="lx-room-text">
+              <p class="lx-room-cat">— Alcove of Restraint</p>
+              <h3>Ivory. Oxblood. Brass.</h3>
+              <p>The world rejects gradient. Each room earns one micro-palette and one material. Reflection is the only kinetic decoration permitted.</p>
+              <p class="lx-room-meta">or jaune · émeraude · velours noir</p>
+            </div>
+            <figure class="lx-room-mat">
+              <img src="assets/luxury-jewelry-tray-cut.png" alt="A gold bracelet and an emerald, isolated" loading="lazy">
+              <span class="lx-room-tag">Pl. I</span>
+            </figure>
+          </article>
+
+          <article class="lx-room" data-reveal>
+            <div class="lx-room-num">II.</div>
+            <div class="lx-room-text">
+              <p class="lx-room-cat">— Alcove of Ceremony</p>
+              <h3>Slow camera. Slow type.</h3>
+              <p>Transitions take 1500–3500ms. Serifs lead. Hidden gestures reward curiosity without gating critical content.</p>
+              <p class="lx-room-meta">flacon de cristal · velours · noyer</p>
+            </div>
+            <figure class="lx-room-mat lx-room-mat-tall">
+              <img src="assets/luxury-ceremony-cut.png" alt="A crystal perfume flacon with a brass atomizer, isolated" loading="lazy">
+              <span class="lx-room-tag">Pl. II</span>
+            </figure>
+          </article>
+
+          <article class="lx-room" data-reveal>
+            <div class="lx-room-num">III.</div>
+            <div class="lx-room-text">
+              <p class="lx-room-cat">— Alcove of Score</p>
+              <h3>The page hums.</h3>
+              <p>A Web Audio score threads as a narrative layer — never wallpaper. Toggle the dot above the hero to listen (default: muted).</p>
+              <p class="lx-room-meta">laiton · partition · ruban de soie</p>
+            </div>
+            <figure class="lx-room-mat lx-room-mat-fade">
+              <img src="assets/luxury-score-cut.png" alt="An antique brass music box mechanism, isolated" loading="lazy">
+              <span class="lx-room-tag">Pl. III</span>
+            </figure>
+          </article>
+        </section>
+
+        <!-- Savoir-faire — craftsmanship ladder + maison stats -->
+        <section class="lx-savoir" aria-labelledby="lx-savoir-title">
+          <header class="lx-savoir-head" data-reveal>
+            <p class="lx-eyebrow">— savoir-faire / the hand</p>
+            <h2 id="lx-savoir-title" class="lx-h2">Patience is the material.</h2>
+          </header>
+          <ol class="lx-steps">
+            <li class="lx-step" data-reveal><span class="lx-step-n">I</span><div><h3>Drawn</h3><p>The composition is sketched in serif and silence before a single pixel is placed.</p></div></li>
+            <li class="lx-step" data-reveal><span class="lx-step-n">II</span><div><h3>Set</h3><p>Type is set with large counters and generous leading. White space does the talking.</p></div></li>
+            <li class="lx-step" data-reveal><span class="lx-step-n">III</span><div><h3>Lit</h3><p>One material, one light. Reflection is the only kinetic decoration permitted.</p></div></li>
+            <li class="lx-step" data-reveal><span class="lx-step-n">IV</span><div><h3>Scored</h3><p>A web-audio drone threads the rooms as a narrative layer — never wallpaper.</p></div></li>
+          </ol>
+          <div class="lx-maison">
+            <div class="lx-maison-stat" data-reveal><b data-count="1847">0</b><span>maison, since</span></div>
+            <div class="lx-maison-rule" aria-hidden="true"></div>
+            <div class="lx-maison-stat" data-reveal><b data-count="3500" data-count-suffix="ms">0</b><span>longest transition</span></div>
+            <div class="lx-maison-rule" aria-hidden="true"></div>
+            <div class="lx-maison-stat" data-reveal><b data-count="1">0</b><span>accent per room</span></div>
+          </div>
+        </section>
+
+        <!-- World footer: imprint card with ornament seal -->
+        <footer class="lx-footer" aria-label="World 04 footer">
+          <div class="lx-footer-seal" aria-hidden="true">
+            <img src="assets/luxury-ornament.png" alt="">
+          </div>
+          <div class="lx-footer-content">
+            <p class="lx-eyebrow">— imprint / fermeture</p>
+            <h2 class="lx-h2">End of the alcove.</h2>
+            <p class="lx-footer-lede">
+              Filed under "brands that earned their interface." Open-source. Anti-template. With compliments of the framework.
+            </p>
+            <a class="lx-final-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">
+              <span>Open the skill</span>
+              <em>↗</em>
+            </a>
+            <div class="lx-footer-base">
+              <span>Maison CoolLanding</span>
+              <span>— estd. 2026</span>
+              <span>MIT licence</span>
+            </div>
+          </div>
+        </footer>
       </section>
 
-      <section class="launch" id="launch" aria-labelledby="launch-title">
-        <div class="launch-copy" data-reveal>
-          <p class="eyebrow">05 / launch console</p>
-          <h2 id="launch-title">CoolLanding is a reference-grade landing workflow you can fork.</h2>
-          <p>
-            WebGL first. Motion as state. Generated assets as focal material. Typography that
-            decides the composition. Scroll as an editing timeline. A skill repo that turns the
-            research into repeatable agent instructions.
-          </p>
+      <!-- ================================================================== -->
+      <!-- WORLD 05 — Spatial Architecture · Air Center lineage                -->
+      <!-- ================================================================== -->
+      <section class="world world-spatial-architecture" id="spatial-architecture" aria-labelledby="spatial-title">
+        <section class="sp-hero">
+          <div class="sp-coords" aria-hidden="true">
+            <span>48.8566° N</span><span>2.3522° E</span><span>datum +35.0m</span>
+          </div>
+
+          <div class="sp-hero-inner" data-reveal>
+            <p class="sp-eyebrow">— world 05 / spatial-architecture / volume-first</p>
+            <h1 id="spatial-title" class="sp-title">
+              <span class="sp-title-line">SPACE</span>
+              <span class="sp-title-line sp-title-thin">rendered as</span>
+              <span class="sp-title-line">VOLUME</span>
+            </h1>
+            <p class="sp-lede">
+              A spatial design language for places, property and infrastructure. The hero is a volume, not a headline —
+              the pointer tilts the model, scroll lowers the waterline, and the world reflects itself below the horizon.
+            </p>
+            <div class="sp-actions">
+              <a class="sp-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Enter the model <span aria-hidden="true">↘</span></a>
+              <button class="sp-ghost magnetic" type="button" data-spatial-orbit aria-pressed="true">auto-orbit: on</button>
+            </div>
+          </div>
+
+          <div class="sp-stage" aria-hidden="true">
+            <div class="sp-waterline" data-spatial-waterline></div>
+            <div class="sp-model" data-spatial-model>
+              <div class="sp-slab sp-slab-1"></div>
+              <div class="sp-slab sp-slab-2"></div>
+              <div class="sp-slab sp-slab-3"></div>
+              <div class="sp-slab sp-slab-core"></div>
+              <div class="sp-slab sp-slab-roof"></div>
+            </div>
+            <div class="sp-model sp-model-reflection" data-spatial-reflection>
+              <div class="sp-slab sp-slab-1"></div>
+              <div class="sp-slab sp-slab-2"></div>
+              <div class="sp-slab sp-slab-3"></div>
+              <div class="sp-slab sp-slab-core"></div>
+              <div class="sp-slab sp-slab-roof"></div>
+            </div>
+          </div>
+
+          <aside class="sp-index" aria-label="Proximity index" data-reveal>
+            <header><span>proximity index</span><span data-spatial-clock>00:00</span></header>
+            <ul>
+              <li><span>metro</span><b>2 min</b></li>
+              <li><span>river</span><b>4 min</b></li>
+              <li><span>park</span><b>6 min</b></li>
+              <li><span>airport</span><b>22 min</b></li>
+            </ul>
+            <footer><span>tilt</span><b data-spatial-tilt>0.0°, 0.0°</b></footer>
+          </aside>
+        </section>
+
+        <section class="skill-primitives skill-primitives-spatial" data-skill-primitives aria-labelledby="sp-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="sp-skill-title">The skill gives abstract claims a place, datum and horizon.</h2>
+            <p>Use this world for real estate, infrastructure, climate, architecture or any brand that needs to feel measured and inhabitable.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Spatial showcase</h3><p>Build a volume-first landing page where model, section, index and horizon explain the offer.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Datum · slab · reflection</h3><p>Survey coordinates, axonometric layers, waterline mirror, proximity index, scroll-fed strata.</p></article>
+            <article data-reveal><span>proof</span><h3>Local geometry</h3><p>Scroll must move the waterline and active strata; pointer must tilt or orbit the spatial object.</p></article>
+          </div>
+        </section>
+
+        <section class="sp-strata">
+          <header class="sp-strata-head" data-reveal>
+            <p class="sp-eyebrow">— section / strata</p>
+            <h2 class="sp-h2">Read the building like a section drawing.</h2>
+          </header>
+          <div class="sp-strata-rows">
+            <article class="sp-stratum" data-reveal><span class="sp-stratum-z">+32m</span><h3>Sky deck</h3><p>Pointer-tilt parallax. The volume leads, the copy follows.</p></article>
+            <article class="sp-stratum" data-reveal><span class="sp-stratum-z">+18m</span><h3>Mass</h3><p>One luminous object in a calm field. Reflection is the only decoration.</p></article>
+            <article class="sp-stratum" data-reveal><span class="sp-stratum-z">±0m</span><h3>Waterline</h3><p>Scroll lowers the horizon; everything above mirrors below it.</p></article>
+            <article class="sp-stratum" data-reveal><span class="sp-stratum-z">−9m</span><h3>Datum</h3><p>A grounded grid, surveyed coordinates, real proximity numbers.</p></article>
+          </div>
+        </section>
+
+        <footer class="sp-footer" aria-label="World 05 footer">
+          <div class="sp-footer-grid">
+            <div class="sp-footer-block">
+              <p class="sp-eyebrow">— site plan</p>
+              <h2 class="sp-h2">Every brand deserves a place to stand.</h2>
+              <p class="sp-footer-lede">Filed under spatial. Volume-first, surveyed, reflective. An open-source pattern for places that want to feel built, not designed.</p>
+            </div>
+            <dl class="sp-footer-legend">
+              <div><dt>grid ref</dt><dd>TQ 309 805</dd></div>
+              <div><dt>scale</dt><dd>1:200 @ A1</dd></div>
+              <div><dt>datum</dt><dd>+35.00m</dd></div>
+              <div><dt>worlds</dt><dd>08</dd></div>
+              <div><dt>licence</dt><dd>MIT</dd></div>
+            </dl>
+          </div>
+          <div class="sp-footer-rule" aria-hidden="true"></div>
+          <div class="sp-footer-base">
+            <span>CoolLanding · spatial division · estd. 2026</span>
+            <a href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">github.com/veithly/CoolLanding-Skill ↗</a>
+          </div>
+        </footer>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- WORLD 06 — Festival Kinetic · Razorpay Sprint lineage               -->
+      <!-- ================================================================== -->
+      <section class="world world-festival-kinetic" id="festival-kinetic" aria-labelledby="festival-title">
+        <nav class="fk-index" aria-label="Chapter index" data-reveal>
+          <span class="fk-index-label">index</span>
+          <a href="#festival-title" data-fk-jump>01 / open</a>
+          <a href="#fk-grid" data-fk-jump>02 / build</a>
+          <a href="#fk-grid" data-fk-jump>03 / ship</a>
+          <a href="#fk-footer" data-fk-jump>04 / party</a>
+        </nav>
+
+        <section class="fk-hero">
+          <div class="fk-copy">
+            <p class="fk-eyebrow">— world 06 / festival-kinetic / max-energy</p>
+            <h1 id="festival-title" class="fk-title">
+              <span class="fk-title-fill" data-fk-stagger>SPRINT</span>
+              <span class="fk-title-out" data-fk-stagger>2026</span>
+            </h1>
+            <p class="fk-lede">A high-energy design language for launches, conferences and developer festivals. Saturated, numbered, loud — built to make people feel like something is happening <em>right now</em>.</p>
+            <div class="fk-ticket">
+              <div><span>when</span><b>26 · 27 jun</b></div>
+              <div><span>where</span><b>The Web ▸ Live</b></div>
+              <div><span>pass</span><b>free / fork</b></div>
+            </div>
+            <a class="fk-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Grab a pass <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="fk-anchor" data-fk-anchor aria-hidden="true">
+            <div class="fk-pass">
+              <span class="fk-pass-kicker">all access</span>
+              <b>NO<br>TEMPLATE<br>PASS</b>
+              <i>06/A</i>
+              <em>scan to ship</em>
+              <span class="fk-pass-rfid"></span>
+            </div>
+            <div class="fk-pass-stub">BUILD LOUD</div>
+            <div class="fk-pass-shadow"></div>
+          </div>
+        </section>
+
+        <div class="fk-marquee" aria-hidden="true">
+          <span>BUILD LOUD · SHIP FAST · NO TEMPLATES · ONE SIGNATURE · BUILD LOUD · SHIP FAST · NO TEMPLATES · ONE SIGNATURE · </span>
         </div>
 
-        <div class="launch-readouts">
-          <article data-reveal>
-            <span>website</span>
-            <strong>shader</strong>
-            <p>fragment shader core, pointer distortion, scroll-driven palette</p>
-          </article>
-          <article data-reveal>
-            <span>skill</span>
-            <strong>codex</strong>
-            <p>reference analysis, effect recipes, visual QA rules, and reusable workflow</p>
-          </article>
-          <article data-reveal>
-            <span>community</span>
-            <strong>star</strong>
-            <p>open the skill repo, give it a star, and use it as a launch-page starting point</p>
-          </article>
-        </div>
+        <section class="skill-primitives skill-primitives-festival" data-skill-primitives aria-labelledby="fk-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="fk-skill-title">The skill converts a launch into a numbered live event.</h2>
+            <p>Use this world when a product, conference or campaign needs momentum: loud chapters, physical passes and repeated scroll beats.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Festival kinetic launch</h3><p>Stage a high-energy landing page with a chapter index, anchor ticket and active card lineup.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Pass · index · marquee</h3><p>Saturated blocks, kinetic type, event metadata, ticker loops, numbered sessions, pointer tilt.</p></article>
+            <article data-reveal><span>proof</span><h3>Rhythm density</h3><p>The page should keep changing as you scroll: active chapter, assembled cards and a live anchor object.</p></article>
+          </div>
+        </section>
 
-        <a class="final-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star CoolLanding Skill</a>
+        <section class="fk-quote" data-reveal>
+          <p>“A launch page should feel like the room changed temperature.”</p>
+          <span>— CoolLanding field note / 06</span>
+        </section>
+
+        <section class="fk-grid" id="fk-grid">
+          <header class="fk-grid-head" data-reveal>
+            <p class="fk-eyebrow">— line-up / sessions</p>
+            <h2 class="fk-h2">Twelve hours. One signature each.</h2>
+          </header>
+          <div class="fk-cards">
+            <article class="fk-card fk-card-acid" data-reveal><span class="fk-card-tag">01 / A</span><h3>Kinetic type</h3><p>Mega words that snap in on a stagger. Motion is the message.</p></article>
+            <article class="fk-card fk-card-pink" data-reveal><span class="fk-card-tag">01 / B</span><h3>Numbered index</h3><p>Everything is catalogued. Chapters, sessions, edges. Confidence reads as order.</p></article>
+            <article class="fk-card fk-card-blue" data-reveal><span class="fk-card-tag">02 / A</span><h3>Hot marquee</h3><p>A ticker that never stops. The page has a pulse you can read.</p></article>
+            <article class="fk-card fk-card-acid" data-reveal><span class="fk-card-tag">02 / B</span><h3>Anchor object</h3><p>A physical pass tilts with the pointer. The page needs a thing, not a wallpaper.</p></article>
+            <article class="fk-card fk-card-pink" data-reveal><span class="fk-card-tag">03 / A</span><h3>Scroll reveal</h3><p>Cards count themselves in. The lineup assembles as you descend.</p></article>
+            <article class="fk-card fk-card-blue" data-reveal><span class="fk-card-tag">03 / B</span><h3>Signature</h3><p>Each card owns one accent. No card borrows another's color.</p></article>
+          </div>
+        </section>
+
+        <footer class="fk-footer" id="fk-footer" aria-label="World 06 footer">
+          <div class="fk-footer-marquee" aria-hidden="true"><span>SEE YOU AT THE FRONT · SEE YOU AT THE FRONT · SEE YOU AT THE FRONT · </span></div>
+          <div class="fk-footer-inner">
+            <p class="fk-eyebrow">— after party</p>
+            <h2 class="fk-footer-h">The launch never really ends.</h2>
+            <a class="fk-cta fk-cta-big magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Star the skill <span aria-hidden="true">→</span></a>
+            <div class="fk-footer-base">
+              <span>CoolLanding · festival division</span>
+              <span>mmxxvi</span>
+              <span>MIT</span>
+            </div>
+          </div>
+        </footer>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- WORLD 07 — Papercraft Tactile · Aimee's Papercraft lineage          -->
+      <!-- ================================================================== -->
+      <section class="world world-papercraft-tactile" id="papercraft-tactile" aria-labelledby="paper-title">
+        <div class="pc-grain" aria-hidden="true"></div>
+
+        <section class="pc-hero">
+          <div class="pc-scene" aria-hidden="true">
+            <span class="pc-sun"></span>
+            <span class="pc-cloud pc-cloud-1"></span>
+            <span class="pc-cloud pc-cloud-2"></span>
+            <span class="pc-hill pc-hill-back"></span>
+            <span class="pc-hill pc-hill-mid"></span>
+            <span class="pc-hill pc-hill-front"></span>
+          </div>
+          <div class="pc-hero-copy" data-reveal>
+            <p class="pc-eyebrow"><span class="pc-tape">— world 07 / papercraft-tactile / handmade</span></p>
+            <h1 id="paper-title" class="pc-title">Made by hand,<br><span class="pc-title-emph">folded by code.</span></h1>
+            <p class="pc-lede">A warm, tactile design language built from layered cut-paper, soft shadows and a little character that walks the page as you scroll. Nothing here is flat — every element looks glued down by hand.</p>
+          </div>
+        </section>
+
+        <section class="skill-primitives skill-primitives-papercraft" data-skill-primitives aria-labelledby="pc-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="pc-skill-title">The skill makes scrollytelling feel cut, folded and walked.</h2>
+            <p>Use this world for portfolios, education, craft products or any brand where a small character can carry the visitor through the story.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Papercraft narrative</h3><p>Build a character-led scroll path with tactile layers, folded sheets and handcrafted motion.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Paper · path · traveler</h3><p>Cut-paper hills, SVG path drawing, sticky stage, walking character, fold transforms, torn footer.</p></article>
+            <article data-reveal><span>proof</span><h3>Visible sticky path</h3><p>The traveler must stay pinned in the viewport and visibly walk the path; changed coordinates alone do not count.</p></article>
+          </div>
+        </section>
+
+        <section class="pc-path-section" data-paper-path>
+          <div class="pc-path-sticky">
+            <span class="pc-prop pc-prop-note">field note<br>ink + paper</span>
+            <span class="pc-prop pc-prop-house"></span>
+            <span class="pc-prop pc-prop-flag">open source</span>
+            <span class="pc-prop pc-prop-fold"></span>
+            <div class="pc-fold-stage" aria-hidden="true">
+              <span class="pc-fold-sheet pc-fold-sheet-back"></span>
+              <span class="pc-fold-sheet pc-fold-sheet-mid"></span>
+              <span class="pc-fold-sheet pc-fold-sheet-front"></span>
+            </div>
+            <svg class="pc-path-svg" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true">
+              <path class="pc-path-shadow" d="M40,300 C220,300 220,90 420,90 S700,300 960,120" fill="none"/>
+              <path data-paper-line d="M40,300 C220,300 220,90 420,90 S700,300 960,120" fill="none"/>
+            </svg>
+            <div class="pc-traveler" data-paper-traveler aria-hidden="true">
+              <span class="pc-traveler-body"></span>
+              <span class="pc-traveler-face">hi</span>
+            </div>
+            <div class="pc-steps">
+              <span class="pc-step is-on" data-paper-step>01 · pack</span>
+              <span class="pc-step" data-paper-step>02 · fold</span>
+              <span class="pc-step" data-paper-step>03 · glue</span>
+              <span class="pc-step" data-paper-step>04 · ship</span>
+            </div>
+            <p class="pc-path-hint">map no. 07 / paper trail</p>
+          </div>
+        </section>
+
+        <section class="pc-cards">
+          <article class="pc-card pc-card-a" data-reveal><span class="pc-pin"></span><h3>Cut, don't render</h3><p>Layered shapes with offset shadows read as glued paper, not gradients.</p></article>
+          <article class="pc-card pc-card-b" data-reveal><span class="pc-pin"></span><h3>Warm by default</h3><p>Cream, kraft and ink. One soft pastel does the smiling.</p></article>
+          <article class="pc-card pc-card-c" data-reveal><span class="pc-pin"></span><h3>A character walks</h3><p>The signature: a paper friend that travels a path as you scroll.</p></article>
+        </section>
+
+        <footer class="pc-footer" aria-label="World 07 footer">
+          <div class="pc-footer-torn" aria-hidden="true"></div>
+          <div class="pc-footer-inner">
+            <p class="pc-eyebrow"><span class="pc-tape pc-tape-alt">— glued shut</span></p>
+            <h2 class="pc-footer-h">Thanks for scrolling<br>all the way down here.</h2>
+            <p class="pc-footer-lede">Made on paper, shipped on the web. Fold your own — it's open source.</p>
+            <a class="pc-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Fork the skill →</a>
+            <div class="pc-footer-base"><span>CoolLanding · paper desk</span><span>est. 2026 · MIT</span></div>
+          </div>
+        </footer>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- WORLD 08 — Generative System · Active Theory / generative lineage   -->
+      <!-- ================================================================== -->
+      <section class="world world-generative-system" id="generative-system" aria-labelledby="gen-title">
+        <section class="gs-hero">
+          <div class="gs-hero-copy" data-reveal>
+            <p class="gs-eyebrow">— world 08 / generative-system / seed-driven</p>
+            <h1 id="gen-title" class="gs-title">One seed.<br><span class="gs-title-accent">Infinite brand.</span></h1>
+            <p class="gs-lede">A generative design language: the identity is a flow-field grown from a seed. Tune the parameters, shuffle the seed, and the whole field reorganises. The URL carries the seed — share a link, share the exact artwork.</p>
+            <div class="gs-seed">
+              <span class="gs-seed-label">seed</span>
+              <code data-gen-seed>00000000</code>
+              <button class="gs-seed-btn magnetic" type="button" data-gen-shuffle>shuffle</button>
+              <button class="gs-seed-btn magnetic" type="button" data-gen-copy>copy link</button>
+              <button class="gs-seed-btn gs-seed-btn-solid magnetic" type="button" data-gen-save>save .png</button>
+            </div>
+          </div>
+
+          <aside class="gs-controls" aria-label="Generative parameters" data-reveal>
+            <header><span class="gs-ctl-dot"></span>parameters</header>
+            <label class="gs-ctl"><span>density <b data-gen-out="density">60</b></span><input type="range" data-gen-param="density" min="8" max="100" value="60"></label>
+            <label class="gs-ctl"><span>flow <b data-gen-out="flow">50</b></span><input type="range" data-gen-param="flow" min="0" max="100" value="50"></label>
+            <label class="gs-ctl"><span>turbulence <b data-gen-out="turbulence">35</b></span><input type="range" data-gen-param="turbulence" min="0" max="100" value="35"></label>
+            <label class="gs-ctl"><span>hue <b data-gen-out="hue">190</b></span><input type="range" data-gen-param="hue" min="0" max="360" value="190"></label>
+            <div class="gs-readout">
+              <div><span>particles</span><b data-gen-count>0</b></div>
+              <div><span>fps</span><b data-gen-fps>0</b></div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="skill-primitives skill-primitives-generative" data-skill-primitives aria-labelledby="gs-skill-title">
+          <header class="skill-primitives-head" data-reveal>
+            <p class="skill-kicker">CoolLanding skill / design primitives</p>
+            <h2 id="gs-skill-title">The skill turns identity into a shareable system state.</h2>
+            <p>Use this world when the brand should feel alive, parameterized and reproducible: one seed, many frames, every variation linkable.</p>
+          </header>
+          <div class="skill-primitive-grid">
+            <article data-reveal><span>skill</span><h3>Generative identity page</h3><p>Compose a seeded canvas field with live controls, permalink state and exportable output.</p></article>
+            <article data-reveal><span>primitive set</span><h3>Seed · field · panel</h3><p>Flow-field particles, deterministic RNG, parameter sliders, pointer vortex, FPS readout, PNG save.</p></article>
+            <article data-reveal><span>proof</span><h3>Stateful renderer</h3><p>Pointer, click and controls must change pixels; URL seed must reproduce and share the same system.</p></article>
+          </div>
+        </section>
+
+        <section class="gs-explain">
+          <header class="gs-explain-head" data-reveal>
+            <p class="gs-eyebrow">— the system</p>
+            <h2 class="gs-h2">Designed once. Grown forever.</h2>
+          </header>
+          <div class="gs-explain-cards">
+            <article class="gs-ex-card" data-reveal><span class="gs-ex-num">01</span><h3>flow-field</h3><p>Thousands of agents read a noise field and trace it. The field is the brand.</p></article>
+            <article class="gs-ex-card" data-reveal><span class="gs-ex-num">02</span><h3>seeded rng</h3><p>One integer determines everything. Same seed, same artwork, every time.</p></article>
+            <article class="gs-ex-card" data-reveal><span class="gs-ex-num">03</span><h3>url-state</h3><p>The seed lives in the address bar. The permalink <em>is</em> the asset.</p></article>
+            <article class="gs-ex-card" data-reveal><span class="gs-ex-num">04</span><h3>export</h3><p>Save the current frame to PNG — generative identity, shipped as a file.</p></article>
+          </div>
+        </section>
+
+        <footer class="gs-footer" aria-label="World 08 footer">
+          <div class="gs-footer-inner">
+            <p class="gs-eyebrow">— system status</p>
+            <h2 class="gs-h2">The field is still running.</h2>
+            <p class="gs-footer-lede">Eight worlds, one framework. This one never renders the same page twice. Copy the seed link to pin a frame.</p>
+            <div class="gs-footer-stat">
+              <div><span>state</span><b>live</b></div>
+              <div><span>seed</span><b data-gen-seed>00000000</b></div>
+              <div><span>worlds</span><b>08</b></div>
+              <div><span>licence</span><b>MIT</b></div>
+            </div>
+            <a class="gs-cta magnetic" href="https://github.com/veithly/CoolLanding-Skill" target="_blank" rel="noopener">Open the skill ↗</a>
+          </div>
+        </footer>
       </section>
     </main>
 

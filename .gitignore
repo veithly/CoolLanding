@@ -1,4 +1,7 @@
 .omx/
+CoolLanding-Skill/
+__pycache__/
+*.py[cod]
 qa/
 qa-v2/
 research/
