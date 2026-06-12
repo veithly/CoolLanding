@@ -78,556 +78,74 @@ function viewportProgress(el) {
 }
 
 // ============================================================
-// Cinematic Dark — WebGL shader (denser, more detail)
+// Cinematic Dark — GLWorlds pipeline (glworlds.js) + 2D fallback
 // ============================================================
-let glState = null;
-// GPGPU flow-field particle vortex + HDR bloom + filmic composite.
-// Dependency-free WebGL2 port of the Active-Theory recipe (see
-// CoolLanding-Skill .../references/webgl-animation.md): positions live in a
-// FLOAT FBO, advected by curl noise; particles draw as additive HDR points
-// through a real perspective camera; the scene then runs bright-pass ->
-// separable Gaussian bloom -> tonemap/chromatic-aberration/grain composite.
-const PARTICLE_SIDE = 160;             // 160^2 = 25,600 particles
+// The real renderer lives in glworlds.js: layered HDR scene (background ->
+// raymarched chrome sigil -> 65k GPGPU curl-noise particles) -> multi-mip
+// UnrealBloom -> anamorphic streak -> filmic composite. This file only owns
+// scheduling, pointer/scroll state, and the graceful 2D fallback.
 let cnPrevTime = 0;                    // for frame-rate-independent dt
 let cnShock = 0;                       // click impulse, decays each frame
+let heroProgress = 0;                  // scroll progress through the hero arc
 
-const screenVS = `#version 300 es
-in vec2 a_position;
-out vec2 v_uv;
-void main() { v_uv = a_position * 0.5 + 0.5; gl_Position = vec4(a_position, 0.0, 1.0); }`;
-
-// Shared GLSL: value-noise based curl (divergence-free flow field).
-const GLSL_NOISE = `
-float hash11(float p){ p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
-float hash13(vec3 p){ p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
-float vnoise(vec3 x){
-  vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 * f);
-  float n000 = hash13(i + vec3(0.,0.,0.)); float n100 = hash13(i + vec3(1.,0.,0.));
-  float n010 = hash13(i + vec3(0.,1.,0.)); float n110 = hash13(i + vec3(1.,1.,0.));
-  float n001 = hash13(i + vec3(0.,0.,1.)); float n101 = hash13(i + vec3(1.,0.,1.));
-  float n011 = hash13(i + vec3(0.,1.,1.)); float n111 = hash13(i + vec3(1.,1.,1.));
-  return mix(mix(mix(n000,n100,f.x), mix(n010,n110,f.x), f.y),
-             mix(mix(n001,n101,f.x), mix(n011,n111,f.x), f.y), f.z);
-}
-vec3 snoiseVec3(vec3 x){ return vec3(vnoise(x), vnoise(x + 19.19), vnoise(x - 33.33)) * 2.0 - 1.0; }
-vec3 curlNoise(vec3 p){
-  const float e = 0.1;
-  vec3 dx = vec3(e,0.,0.), dy = vec3(0.,e,0.), dz = vec3(0.,0.,e);
-  float x = (snoiseVec3(p+dy).z - snoiseVec3(p-dy).z) - (snoiseVec3(p+dz).y - snoiseVec3(p-dz).y);
-  float y = (snoiseVec3(p+dz).x - snoiseVec3(p-dz).x) - (snoiseVec3(p+dx).z - snoiseVec3(p-dx).z);
-  float z = (snoiseVec3(p+dx).y - snoiseVec3(p-dx).y) - (snoiseVec3(p+dy).x - snoiseVec3(p-dy).x);
-  return normalize(vec3(x,y,z) + 1e-6);
-}`;
-
-// Simulation pass: read previous position texture, write next.
-const simFS = `#version 300 es
-precision highp float;
-in vec2 v_uv;
-out vec4 outColor;
-uniform sampler2D u_pos;
-uniform float u_dt;
-uniform float u_time;
-uniform vec3 u_attractor;
-uniform float u_attract;
-uniform float u_shock;
-${GLSL_NOISE}
-void main(){
-  vec4 data = texture(u_pos, v_uv);
-  vec3 pos = data.xyz;
-  float life = data.w;
-  vec3 curl = curlNoise(pos * 1.32 + vec3(0.0, 0.0, u_time * 0.06));
-  vec3 orbit = normalize(vec3(-pos.z * 0.9, pos.x * 0.14 + sin(u_time * 0.72 + pos.z * 4.0) * 0.09, pos.x * 0.9) + 1e-4);
-  vec3 vel = curl * 0.48 + orbit * (0.26 + u_attract * 0.05);
-  vel -= pos * (0.18 + 0.16 * length(pos));            // keep bounded without killing orbit
-  vec3 toA = u_attractor - pos;
-  float dA = length(toA) + 1e-4;
-  vel += (toA / dA) * u_attract * smoothstep(1.7, 0.0, dA);
-  vel += normalize(pos + 1e-4) * u_shock * 3.3 * smoothstep(1.8, 0.0, length(pos));
-  pos += vel * u_dt;
-  life -= u_dt * 0.11;
-  if (life <= 0.0 || length(pos) > 2.95) {
-    float s = v_uv.x * 53.7 + v_uv.y * 99.1 + u_time;
-    float a = hash11(s) * 6.2831853;
-    float lane = floor(hash11(s + 6.6) * 4.0);
-    float rr = 0.34 + pow(hash11(s + 3.3), 1.9) * 0.82;
-    float ribbon = sin(a * (2.0 + lane) + u_time * (0.18 + lane * 0.035)) * (0.08 + lane * 0.018);
-    float zBand = sin(a * 0.7 + lane * 1.7) * 0.18;
-    pos = vec3(cos(a) * rr * 0.86, sin(a * 1.24 + lane) * 0.34 + ribbon, sin(a) * rr * 0.44 + zBand);
-    life = 0.45 + hash11(s + 1.1) * 0.42;
-  }
-  outColor = vec4(pos, life);
-}`;
-
-// Point render: fetch position, project, size by depth+life; soft additive sprite.
-const pointsVS = `#version 300 es
-in vec2 a_ref;
-uniform sampler2D u_pos;
-uniform mat4 u_mvp;
-uniform float u_size;
-out float v_life;
-out float v_depth;
-void main(){
-  vec4 data = texture(u_pos, a_ref);
-  v_life = data.w;
-  vec3 pos = data.xyz + vec3(0.50, 0.16, 0.0);
-  vec4 clip = u_mvp * vec4(pos, 1.0);
-  gl_Position = clip;
-  v_depth = clip.w;
-  gl_PointSize = clamp(u_size / max(clip.w, 0.05) * (0.24 + v_life * 0.72), 0.7, 22.0);
-}`;
-const pointsFS = `#version 300 es
-precision highp float;
-in float v_life;
-in float v_depth;
-out vec4 outColor;
-void main(){
-  vec2 c = gl_PointCoord * 2.0 - 1.0;
-  float r = dot(c, c);
-  if (r > 1.0) discard;
-  float a = exp(-r * 4.4);
-  float needle = smoothstep(0.055, 0.0, abs(c.y - c.x * 0.24)) * smoothstep(1.0, 0.0, abs(c.x));
-  a = max(a * 0.72, needle * 0.9);
-  vec3 cool = vec3(0.30, 0.86, 1.0);
-  vec3 warm = vec3(1.0, 0.42, 0.12);
-  vec3 col = mix(warm, cool, smoothstep(0.0, 0.7, v_life));
-  col += vec3(1.0) * pow(a, 4.0) * 0.38;                // hot white core
-  float intensity = 0.24 + 0.52 / max(v_depth, 0.56);
-  outColor = vec4(col * a * intensity * (0.48 + v_life * 0.36), a * 0.68);
-}`;
-
-// Luminous origin pass: black-stage energy core, broken aperture rings and rays.
-const auraFS = `#version 300 es
-precision highp float;
-in vec2 v_uv;
-out vec4 outColor;
-uniform vec2 u_res;
-uniform vec2 u_mouse;
-uniform float u_time;
-uniform float u_scroll;
-uniform float u_shock;
-${GLSL_NOISE}
-float ring(float d, float r, float w){ return smoothstep(w, 0.0, abs(d - r)); }
-void main(){
-  vec2 uv = (gl_FragCoord.xy * 2.0 - u_res) / min(u_res.x, u_res.y);
-  vec2 m = (u_mouse * 2.0 - u_res) / min(u_res.x, u_res.y);
-  vec2 anchor = vec2(0.34, 0.14 + u_scroll * 0.08) + m * 0.028;
-  uv -= anchor;
-  float t = u_time;
-  float d = length(uv);
-  float a = atan(uv.y, uv.x);
-  float n = vnoise(vec3(uv * 3.6, t * 0.085));
-
-  float gateA = smoothstep(0.18, 0.72, sin(a * 3.0 + t * 0.36 + n * 3.1));
-  float gateB = smoothstep(0.30, 0.86, sin(a * 5.0 - t * 0.28 + n * 2.2));
-  float gateC = smoothstep(0.42, 0.90, sin(a * 8.0 + t * 0.18));
-
-  float core = exp(-d * 24.0) * (1.85 + u_shock * 3.8);
-  float hotPin = exp(-d * 90.0) * (3.0 + u_shock * 5.0);
-  float halo = exp(-d * 7.2) * 0.105;
-  float aperture =
-    ring(d, 0.115 + sin(t * 0.42) * 0.006, 0.0045) * gateA * 1.15 +
-    ring(d, 0.205 + cos(t * 0.31) * 0.010, 0.0055) * gateB * 0.68 +
-    ring(d, 0.355 + n * 0.018, 0.0065) * gateC * 0.38 +
-    ring(d, 0.590 + n * 0.025, 0.0050) * gateA * gateB * 0.18;
-
-  float raySeed = max(0.0, sin(a * 10.0 + t * 0.7 + n * 5.5));
-  float rays = pow(raySeed, 34.0) * smoothstep(1.0, 0.03, d) * (0.13 + u_scroll * 0.16);
-  float shear = sin(uv.x * 15.0 - uv.y * 5.3 + t * 1.1 + n * 4.0);
-  float filaments = smoothstep(0.992, 1.0, abs(shear)) * smoothstep(1.05, 0.02, d) * 0.075;
-  float scan = smoothstep(0.998, 1.0, sin((uv.y + t * 0.035) * 360.0)) * smoothstep(0.72, 0.0, d) * 0.022;
-  float lens = smoothstep(0.015, 0.0, abs(uv.y + sin(uv.x * 4.0 + t) * 0.004)) * smoothstep(0.95, 0.02, abs(uv.x)) * 0.12;
-  float shock = ring(d, 0.10 + u_shock * 1.16, 0.014) * u_shock * 2.45;
-
-  vec3 cyan = vec3(0.30, 0.95, 1.05);
-  vec3 ember = vec3(1.15, 0.36, 0.08);
-  vec3 white = vec3(1.7);
-  vec3 col = vec3(0.0);
-  col += cyan * (halo + rays * 1.1 + filaments + aperture * 0.82 + scan + lens);
-  col += ember * (aperture * 0.45 + shock * 1.1);
-  col += white * (core * 0.72 + hotPin * 0.45);
-  col *= smoothstep(1.20, 0.025, d);
-  outColor = vec4(col, clamp(max(col.r, max(col.g, col.b)) * 0.75, 0.0, 1.0));
-}`;
-
-// Bright-pass: keep only highlights above threshold (soft knee).
-const brightFS = `#version 300 es
-precision highp float;
-in vec2 v_uv;
-out vec4 outColor;
-uniform sampler2D u_tex;
-uniform float u_threshold;
-void main(){
-  vec3 c = texture(u_tex, v_uv).rgb;
-  float l = max(max(c.r, c.g), c.b);
-  float k = max(l - u_threshold, 0.0) / max(l, 1e-4);
-  outColor = vec4(c * k, 1.0);
-}`;
-
-// Separable Gaussian (run horizontal then vertical, a few times).
-const blurFS = `#version 300 es
-precision highp float;
-in vec2 v_uv;
-out vec4 outColor;
-uniform sampler2D u_tex;
-uniform vec2 u_dir;
-void main(){
-  float w0 = 0.227027, w1 = 0.1945946, w2 = 0.1216216, w3 = 0.054054, w4 = 0.016216;
-  vec3 c = texture(u_tex, v_uv).rgb * w0;
-  c += texture(u_tex, v_uv + u_dir * 1.0).rgb * w1;
-  c += texture(u_tex, v_uv - u_dir * 1.0).rgb * w1;
-  c += texture(u_tex, v_uv + u_dir * 2.0).rgb * w2;
-  c += texture(u_tex, v_uv - u_dir * 2.0).rgb * w2;
-  c += texture(u_tex, v_uv + u_dir * 3.0).rgb * w3;
-  c += texture(u_tex, v_uv - u_dir * 3.0).rgb * w3;
-  c += texture(u_tex, v_uv + u_dir * 4.0).rgb * w4;
-  c += texture(u_tex, v_uv - u_dir * 4.0).rgb * w4;
-  outColor = vec4(c, 1.0);
-}`;
-
-// Final composite: scene + bloom + lens streak, chromatic aberration, tonemap, grain.
-const compFS = `#version 300 es
-precision highp float;
-in vec2 v_uv;
-out vec4 outColor;
-uniform sampler2D u_scene;
-uniform sampler2D u_bloom;
-uniform float u_bloomStrength;
-uniform float u_ca;
-uniform float u_time;
-uniform vec2 u_res;
-float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
-void main(){
-  vec2 uv = v_uv; vec2 d = uv - 0.5;
-  vec2 off = d * (u_ca * (0.4 + dot(d, d) * 2.5));
-  vec3 scene = vec3(texture(u_scene, uv - off).r, texture(u_scene, uv).g, texture(u_scene, uv + off).b);
-  vec3 bloom = vec3(texture(u_bloom, uv - off).r, texture(u_bloom, uv).g, texture(u_bloom, uv + off).b);
-  vec3 streak = vec3(0.0);
-  for (int i = 1; i <= 6; i++) {
-    float fi = float(i);
-    float w = 0.065 / fi;
-    streak += texture(u_bloom, uv + vec2(0.022 * fi, 0.0)).rgb * w;
-    streak += texture(u_bloom, uv - vec2(0.022 * fi, 0.0)).rgb * w;
-  }
-  vec3 col = scene + bloom * u_bloomStrength + streak * vec3(0.45, 0.88, 1.15) * (u_bloomStrength * 0.62);
-  col = col / (1.0 + col);                                  // Reinhard tonemap
-  col = pow(col, vec3(0.92));
-  col *= smoothstep(1.14, 0.24, length(d) * 1.42);          // vignette
-  col += (hash(uv * u_res + u_time) - 0.5) * 0.018;         // grain / dither
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.5, 0.0, 1.0);
-  outColor = vec4(col, alpha);
-}`;
-
-function compileShader(gl, type, source) {
-  const shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    throw new Error(gl.getShaderInfoLog(shader) || "Shader failed");
-  }
-  return shader;
+function glState(world) {
+  return window.GLWorlds && GLWorlds.active(world);
 }
 
-function makeProgram(gl, vsSource, fsSource) {
-  const program = gl.createProgram();
-  gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vsSource));
-  gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fsSource));
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new Error(gl.getProgramInfoLog(program) || "Program failed");
-  }
-  return program;
-}
-
-// Create a color render target. data (optional) seeds a FLOAT position texture.
-function makeTarget(gl, w, h, internalFormat, type, filter, data) {
-  const tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, gl.RGBA, type, data || null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  const fbo = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-  const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  if (!ok) throw new Error("Framebuffer incomplete");
-  return { tex, fbo, w, h };
-}
-
-// Minimal column-major mat4 helpers (gl-matrix subset).
-function mat4Perspective(fovy, aspect, near, far) {
-  const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
-  return new Float32Array([
-    f / aspect, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far + near) * nf, -1,
-    0, 0, 2 * far * near * nf, 0,
-  ]);
-}
-function mat4Multiply(a, b) {
-  const o = new Float32Array(16);
-  for (let c = 0; c < 4; c++) {
-    for (let r = 0; r < 4; r++) {
-      o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
-    }
-  }
-  return o;
-}
-function mat4Camera(aspect, angle, tilt, dist) {
-  const ca = Math.cos(angle), sa = Math.sin(angle);
-  const ct = Math.cos(tilt), st = Math.sin(tilt);
-  // view = translate(0,0,-dist) * rotX(tilt) * rotY(angle)
-  const view = new Float32Array([
-    ca, st * sa, -ct * sa, 0,
-    0, ct, st, 0,
-    sa, -st * ca, ct * ca, 0,
-    0, 0, -dist, 1,
-  ]);
-  return mat4Multiply(mat4Perspective(0.82, aspect, 0.1, 20), view);
-}
-
-function uniformMap(gl, p, names) {
-  const u = {};
-  names.forEach((n) => { u[n.key] = gl.getUniformLocation(p, n.gl); });
-  return u;
-}
-
-// (Re)allocate the HDR scene + bloom targets at the current canvas size.
-function allocCinematicTargets(g) {
-  const gl = g.gl;
-  [g.scene, g.brightRT, g.blurA, g.blurB].forEach((t) => {
-    if (!t) return;
-    gl.deleteTexture(t.tex);
-    gl.deleteFramebuffer(t.fbo);
-  });
-  const w = Math.max(2, canvasCinematic.width);
-  const h = Math.max(2, canvasCinematic.height);
-  const bw = Math.max(2, Math.floor(w * 0.25));
-  const bh = Math.max(2, Math.floor(h * 0.25));
-  g.scene = makeTarget(gl, w, h, gl.RGBA16F, gl.HALF_FLOAT, gl.LINEAR);
-  g.brightRT = makeTarget(gl, bw, bh, gl.RGBA16F, gl.HALF_FLOAT, gl.LINEAR);
-  g.blurA = makeTarget(gl, bw, bh, gl.RGBA16F, gl.HALF_FLOAT, gl.LINEAR);
-  g.blurB = makeTarget(gl, bw, bh, gl.RGBA16F, gl.HALF_FLOAT, gl.LINEAR);
-}
-
-function initWebGL() {
-  const gl = canvasCinematic.getContext("webgl2", { alpha: true, antialias: false, premultipliedAlpha: true });
-  if (!gl) return null;
-  if (!gl.getExtension("EXT_color_buffer_float")) return null; // need float render targets
-  const side = PARTICLE_SIDE;
-  const N = side * side;
-
-  const g = { gl, side };
-
-  // full-screen triangle shared by all screen-space passes
-  g.quadBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, g.quadBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-
-  // per-particle texture-coordinate references
-  const ref = new Float32Array(N * 2);
-  let k = 0;
-  for (let y = 0; y < side; y++) {
-    for (let x = 0; x < side; x++) { ref[k++] = (x + 0.5) / side; ref[k++] = (y + 0.5) / side; }
-  }
-  g.refBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, g.refBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, ref, gl.STATIC_DRAW);
-
-  // Position state lives in HALF_FLOAT targets (renderable on every backend,
-  // incl. SwiftShader; 32F is not universally framebuffer-complete). Particles
-  // start at the origin with life 0, so the first sim frame respawns them into
-  // the seed sphere — no half-float CPU upload needed.
-  const posA = makeTarget(gl, side, side, gl.RGBA16F, gl.HALF_FLOAT, gl.NEAREST, null);
-  const posB = makeTarget(gl, side, side, gl.RGBA16F, gl.HALF_FLOAT, gl.NEAREST, null);
-  g.pos = [posA, posB];
-
-  // programs
-  const simP = makeProgram(gl, screenVS, simFS);
-  g.sim = {
-    p: simP, aPos: gl.getAttribLocation(simP, "a_position"),
-    u: uniformMap(gl, simP, [
-      { key: "pos", gl: "u_pos" }, { key: "dt", gl: "u_dt" }, { key: "time", gl: "u_time" },
-      { key: "attractor", gl: "u_attractor" }, { key: "attract", gl: "u_attract" }, { key: "shock", gl: "u_shock" },
-    ]),
+// Lazily build the GL pipeline for a world the first time it is visited, so
+// secondary contexts/FBOs only exist when needed (kind to weak GPUs).
+function ensureWorldPipeline(world) {
+  if (!window.GLWorlds) return;
+  const map = {
+    "spatial-architecture": ["spatial", canvasSpatial],
+    "luxury-alcove": ["luxury", canvasAlcove],
   };
-  const ptP = makeProgram(gl, pointsVS, pointsFS);
-  g.points = {
-    p: ptP, aRef: gl.getAttribLocation(ptP, "a_ref"),
-    u: uniformMap(gl, ptP, [{ key: "pos", gl: "u_pos" }, { key: "mvp", gl: "u_mvp" }, { key: "size", gl: "u_size" }]),
-  };
-  const brP = makeProgram(gl, screenVS, brightFS);
-  g.bright = {
-    p: brP, aPos: gl.getAttribLocation(brP, "a_position"),
-    u: uniformMap(gl, brP, [{ key: "tex", gl: "u_tex" }, { key: "threshold", gl: "u_threshold" }]),
-  };
-  const auP = makeProgram(gl, screenVS, auraFS);
-  g.aura = {
-    p: auP, aPos: gl.getAttribLocation(auP, "a_position"),
-    u: uniformMap(gl, auP, [
-      { key: "res", gl: "u_res" }, { key: "mouse", gl: "u_mouse" },
-      { key: "time", gl: "u_time" }, { key: "scroll", gl: "u_scroll" }, { key: "shock", gl: "u_shock" },
-    ]),
-  };
-  const blP = makeProgram(gl, screenVS, blurFS);
-  g.blur = {
-    p: blP, aPos: gl.getAttribLocation(blP, "a_position"),
-    u: uniformMap(gl, blP, [{ key: "tex", gl: "u_tex" }, { key: "dir", gl: "u_dir" }]),
-  };
-  const cmP = makeProgram(gl, screenVS, compFS);
-  g.comp = {
-    p: cmP, aPos: gl.getAttribLocation(cmP, "a_position"),
-    u: uniformMap(gl, cmP, [
-      { key: "scene", gl: "u_scene" }, { key: "bloom", gl: "u_bloom" }, { key: "bloomStrength", gl: "u_bloomStrength" },
-      { key: "ca", gl: "u_ca" }, { key: "time", gl: "u_time" }, { key: "res", gl: "u_res" },
-    ]),
-  };
-
-  allocCinematicTargets(g);
-  g.resize = () => allocCinematicTargets(g);
-  return g;
+  const entry = map[world];
+  if (!entry) return;
+  const [name, canvas] = entry;
+  if (canvas && !GLWorlds.active(name)) {
+    if (GLWorlds.ensure(name, canvas)) GLWorlds.resize(name);
+    else resizeCanvases();   // GL failed — give the 2D fallback its context
+  }
 }
 
-function drawQuad(g, info) {
-  const gl = g.gl;
-  gl.bindBuffer(gl.ARRAY_BUFFER, g.quadBuf);
-  gl.enableVertexAttribArray(info.aPos);
-  gl.vertexAttribPointer(info.aPos, 2, gl.FLOAT, false, 0, 0);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
+function glRenderState(time) {
+  const tSec = (time - startedAt) * 0.001;
+  const rawDt = cnPrevTime ? (time - cnPrevTime) * 0.001 : 0.016;
+  cnPrevTime = time;
+  const dt = Math.min(Math.max(rawDt, 0.0005), 0.05);
+  cnShock *= Math.pow(0.30, dt);
+  heroProgress = clamp01(window.scrollY / Math.max(1, window.innerHeight * 1.4));
+  return {
+    time: tSec,
+    dt,
+    rawDt,
+    mx: width ? pointer.x / width - 0.5 : 0,
+    my: height ? -(pointer.y / height - 0.5) : 0,
+    heroP: heroProgress,
+    scroll: scrollProgress,
+    shock: Math.min(1.5, cnShock + pulse * 0.6),
+    pulse,
+    reduced: prefersReducedMotion,
+    orbit: spatialOrbit,
+  };
 }
 
 function renderCinematic(time) {
-  if (!glState) {
-    // graceful fallback when WebGL2 / float targets are unavailable
-    const ctx = canvasCinematic.getContext("2d");
-    ctx.clearRect(0, 0, width, height);
-    const x = pointer.x;
-    const y = pointer.y;
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, Math.max(width, height) * 0.44);
-    gradient.addColorStop(0, `rgba(255,255,255,${0.65 + pulse})`);
-    gradient.addColorStop(0.12, "rgba(94,251,255,0.34)");
-    gradient.addColorStop(0.62, "rgba(94,251,255,0.04)");
-    gradient.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-    return;
-  }
-  const g = glState;
-  const gl = g.gl;
-
-  // frame-rate-independent dt (the HZ trick) + decaying click shock
-  const tSec = (time - startedAt) * 0.001;
-  let dt = cnPrevTime ? (time - cnPrevTime) * 0.001 : 0.016;
-  cnPrevTime = time;
-  dt = Math.min(Math.max(dt, 0.0005), 0.05);
-  cnShock *= Math.pow(0.30, dt);
-
-  const ndcx = (pointer.x / Math.max(1, width)) * 2 - 1;
-  const ndcy = -((pointer.y / Math.max(1, height)) * 2 - 1);
-
-  // 1. simulate positions (read pos[0] -> write pos[1]), then swap
-  const read = g.pos[0];
-  const write = g.pos[1];
-  gl.bindFramebuffer(gl.FRAMEBUFFER, write.fbo);
-  gl.viewport(0, 0, g.side, g.side);
-  gl.disable(gl.BLEND);
-  gl.useProgram(g.sim.p);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, read.tex);
-  gl.uniform1i(g.sim.u.pos, 0);
-  gl.uniform1f(g.sim.u.dt, dt);
-  gl.uniform1f(g.sim.u.time, tSec);
-  gl.uniform3f(g.sim.u.attractor, ndcx * 1.3, ndcy * 1.0, 0.0);
-  gl.uniform1f(g.sim.u.attract, 0.78 + scrollProgress * 0.46);
-  gl.uniform1f(g.sim.u.shock, cnShock * 1.18 + pulse * 0.95);
-  drawQuad(g, g.sim);
-  g.pos[0] = write;
-  g.pos[1] = read;
-
-  // 2. draw particles as additive HDR points into the scene buffer
-  gl.bindFramebuffer(gl.FRAMEBUFFER, g.scene.fbo);
-  gl.viewport(0, 0, g.scene.w, g.scene.h);
-  gl.clearColor(0, 0, 0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.disable(gl.BLEND);
-  gl.useProgram(g.aura.p);
-  gl.uniform2f(g.aura.u.res, g.scene.w, g.scene.h);
-  gl.uniform2f(g.aura.u.mouse, pointer.x * dpr, pointer.y * dpr);
-  gl.uniform1f(g.aura.u.time, tSec);
-  gl.uniform1f(g.aura.u.scroll, scrollProgress);
-  gl.uniform1f(g.aura.u.shock, cnShock * 1.18 + pulse * 0.95);
-  drawQuad(g, g.aura);
-
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.ONE, gl.ONE);
-  gl.useProgram(g.points.p);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, g.pos[0].tex);
-  gl.uniform1i(g.points.u.pos, 0);
-  const aspect = g.scene.w / g.scene.h;
-  const sp = scrollProgress;
-  const angle = tSec * 0.06 + ndcx * 0.5 + sp * 2.4;   // scroll advances the orbit
-  const tilt = -0.08 + ndcy * 0.18 + sp * 0.38;
-  const dist = 4.18 - sp * 1.12;                        // scroll dollies the camera in
-  gl.uniformMatrix4fv(g.points.u.mvp, false, mat4Camera(aspect, angle, tilt, dist));
-  gl.uniform1f(g.points.u.size, g.scene.h * (0.031 + sp * 0.018));
-  gl.bindBuffer(gl.ARRAY_BUFFER, g.refBuf);
-  gl.enableVertexAttribArray(g.points.aRef);
-  gl.vertexAttribPointer(g.points.aRef, 2, gl.FLOAT, false, 0, 0);
-  gl.drawArrays(gl.POINTS, 0, g.side * g.side);
-  gl.disable(gl.BLEND);
-
-  // 3. bright-pass (highlights only) into the bloom chain
-  gl.bindFramebuffer(gl.FRAMEBUFFER, g.brightRT.fbo);
-  gl.viewport(0, 0, g.brightRT.w, g.brightRT.h);
-  gl.useProgram(g.bright.p);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, g.scene.tex);
-  gl.uniform1i(g.bright.u.tex, 0);
-  gl.uniform1f(g.bright.u.threshold, 0.78);
-  drawQuad(g, g.bright);
-
-  // 4. separable Gaussian blur, ping-ponged with growing radius
-  gl.useProgram(g.blur.p);
-  let input = g.brightRT;
-  const passes = 3;
-  for (let i = 0; i < passes; i++) {
-    gl.bindFramebuffer(gl.FRAMEBUFFER, g.blurA.fbo);
-    gl.viewport(0, 0, g.blurA.w, g.blurA.h);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, input.tex);
-    gl.uniform1i(g.blur.u.tex, 0);
-    gl.uniform2f(g.blur.u.dir, (1.0 / g.blurA.w) * (1.0 + i), 0.0);
-    drawQuad(g, g.blur);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, g.blurB.fbo);
-    gl.viewport(0, 0, g.blurB.w, g.blurB.h);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, g.blurA.tex);
-    gl.uniform2f(g.blur.u.dir, 0.0, (1.0 / g.blurB.h) * (1.0 + i));
-    drawQuad(g, g.blur);
-    input = g.blurB;
-  }
-
-  // 5. composite scene + bloom to the screen (tonemap / CA / vignette / grain)
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, canvasCinematic.width, canvasCinematic.height);
-  gl.clearColor(0, 0, 0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.useProgram(g.comp.p);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, g.scene.tex);
-  gl.uniform1i(g.comp.u.scene, 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, input.tex);
-  gl.uniform1i(g.comp.u.bloom, 1);
-  gl.uniform1f(g.comp.u.bloomStrength, 0.82 + pulse * 0.45 + scrollProgress * 0.20);
-  gl.uniform1f(g.comp.u.ca, 0.0016 + scrollProgress * 0.0028);
-  gl.uniform1f(g.comp.u.time, tSec);
-  gl.uniform2f(g.comp.u.res, canvasCinematic.width, canvasCinematic.height);
-  drawQuad(g, g.comp);
+  if (window.GLWorlds && GLWorlds.render("cinematic", glRenderState(time))) return;
+  // graceful fallback when WebGL2 / float targets are unavailable
+  const ctx = canvasCinematic.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, width, height);
+  const x = pointer.x;
+  const y = pointer.y;
+  const gradient = ctx.createRadialGradient(x, y, 0, x, y, Math.max(width, height) * 0.44);
+  gradient.addColorStop(0, `rgba(255,255,255,${0.65 + pulse})`);
+  gradient.addColorStop(0.12, "rgba(94,251,255,0.34)");
+  gradient.addColorStop(0.62, "rgba(94,251,255,0.04)");
+  gradient.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
 }
 
 // ============================================================
@@ -708,8 +226,10 @@ function initLuxuryParticles() {
   }
 }
 
-function renderLuxury() {
+function renderLuxury(time) {
+  if (window.GLWorlds && GLWorlds.render("luxury", glRenderState(time))) return;
   const ctx = canvasAlcove.getContext("2d");
+  if (!ctx) return;
   ctx.clearRect(0, 0, width, height);
 
   // subtle vignette of warm light from upper right
@@ -798,11 +318,8 @@ function updateLuxuryMotion(world) {
 function updateSpatialMotion(world, p) {
   spatialProgress = p;
   const local = localProgress(world.querySelector(".sp-hero"));
-  const stage = world.querySelector(".sp-stage");
-  if (stage) {
-    stage.style.setProperty("--sp-p", local.toFixed(4));
-    stage.style.setProperty("--sp-horizon", `${(local * 64).toFixed(1)}px`);
-  }
+  // exposed for CSS hooks + probes; the camera dive itself happens in WebGL
+  world.style.setProperty("--sp-p", local.toFixed(4));
   world.querySelectorAll(".sp-stratum").forEach((row) => {
     const rp = viewportProgress(row);
     row.style.setProperty("--row-p", rp.toFixed(4));
@@ -868,19 +385,33 @@ function resizeCanvases() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   width = window.innerWidth;
   height = window.innerHeight;
+  // canvases reserved for (possibly not-yet-built) WebGL pipelines: grabbing a
+  // 2D context would permanently block webgl2 on them, so only the ones whose
+  // GL init actually failed fall back to 2D here.
+  const reserved = new Set();
+  if (window.GLWorlds) {
+    if (!GLWorlds.failed("cinematic")) reserved.add(canvasCinematic);
+    if (!GLWorlds.failed("luxury")) reserved.add(canvasAlcove);
+    if (!GLWorlds.failed("spatial")) reserved.add(canvasSpatial);
+  }
   [canvasCinematic, canvasEditorial, canvasAlcove, canvasSpatial, canvasGenerative].forEach((c) => {
     if (!c) return;
     c.width = Math.floor(width * dpr);
     c.height = Math.floor(height * dpr);
     c.style.width = `${width}px`;
     c.style.height = `${height}px`;
+    if (reserved.has(c)) return;
     const ctx = c.getContext("2d");
     if (ctx && typeof ctx.scale === "function") {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
     }
   });
-  if (glState && glState.resize) glState.resize();
+  if (window.GLWorlds) {
+    GLWorlds.resize("cinematic");
+    GLWorlds.resize("luxury");
+    GLWorlds.resize("spatial");
+  }
   initLuxuryParticles();
   seedGenerativeParticles();
 }
@@ -945,10 +476,9 @@ function updateOrbitReadout() {
       shock: document.querySelector("[data-orbit-shock]"),
       particles: document.querySelector("[data-orbit-particles]"),
     };
-    if (orbitEls.particles) orbitEls.particles.textContent = (PARTICLE_SIDE * PARTICLE_SIDE).toLocaleString();
+    if (orbitEls.particles) orbitEls.particles.textContent = (256 * 256).toLocaleString();
   }
-  const sp = scrollProgress;
-  const bloom = Math.min(1, (1.5 + pulse * 0.9 + sp * 0.4 - 1.5) / 1.3 + sp * 0.5);
+  const sp = heroProgress;
   const map = { orbit: sp, dolly: sp, bloom: Math.min(1, sp * 0.7 + pulse * 0.6) };
   orbitEls.bars.forEach((b) => {
     const k = b.getAttribute("data-orbit-bar");
@@ -958,7 +488,7 @@ function updateOrbitReadout() {
     const k = v.getAttribute("data-orbit-val");
     v.textContent = `${Math.round((map[k] || 0) * 100)}%`;
   });
-  if (orbitEls.camz) orbitEls.camz.textContent = (3.2 - sp * 1.25).toFixed(2);
+  if (orbitEls.camz) orbitEls.camz.textContent = (3.35 - sp * 0.85).toFixed(2);
   if (orbitEls.shock) orbitEls.shock.textContent = (cnShock + pulse * 0.6).toFixed(2);
 }
 
@@ -1019,6 +549,7 @@ function setWorld(world, options = {}) {
     }
   }
 
+  ensureWorldPipeline(world);
   if (world === "luxury-alcove") initLuxuryParticles();
   if (world === "spatial-architecture") { renderSpatial(performance.now()); }
   if (world === "generative-system") { seedGenerativeParticles(); renderGenerative(performance.now()); }
@@ -1035,7 +566,7 @@ function setWorld(world, options = {}) {
   // cursor label per world
   if (cursorLabel) {
     cursorLabel.textContent = ({
-      "cinematic-dark": "signal",
+      "cinematic-dark": "",
       "editorial-interference": "lens",
       "ritual-craft": "stamp",
       "luxury-alcove": "alcove",
@@ -1043,7 +574,7 @@ function setWorld(world, options = {}) {
       "festival-kinetic": "go",
       "papercraft-tactile": "fold",
       "generative-system": "seed",
-    })[world] || "signal";
+    })[world] ?? "signal";
   }
 
   // stop audio if leaving luxury-alcove
@@ -1075,7 +606,10 @@ function bootLoader() {
     if (loaderLine) loaderLine.style.width = `${value}%`;
     if (value >= 100) {
       window.clearInterval(interval);
-      window.setTimeout(() => document.body.classList.add("is-loaded"), 260);
+      window.setTimeout(() => {
+        document.body.classList.add("is-loaded");
+        if (window.GLWorlds) GLWorlds.startReveal((performance.now() - startedAt) * 0.001);
+      }, 260);
       window.setTimeout(() => { pulse = 1; }, 620);
     }
   }, 70);
@@ -1248,7 +782,7 @@ function setupCursor() {
       cursor.classList.add("is-hot");
       if (cursorLabel) {
         const baseLabels = {
-          "cinematic-dark": "open",
+          "cinematic-dark": "",
           "editorial-interference": "inspect",
           "ritual-craft": "tap",
           "luxury-alcove": "discover",
@@ -1264,7 +798,7 @@ function setupCursor() {
       cursor.classList.remove("is-hot");
       if (cursorLabel) {
         const restLabels = {
-          "cinematic-dark": "signal",
+          "cinematic-dark": "",
           "editorial-interference": "lens",
           "ritual-craft": "stamp",
           "luxury-alcove": "alcove",
@@ -1273,7 +807,7 @@ function setupCursor() {
           "papercraft-tactile": "fold",
           "generative-system": "seed",
         };
-        cursorLabel.textContent = restLabels[currentWorld] || "signal";
+        cursorLabel.textContent = restLabels[currentWorld] ?? "signal";
       }
     });
   });
@@ -1619,6 +1153,7 @@ function drawSpatialWater(ctx, cx, horizon, t) {
 }
 
 function renderSpatial(time) {
+  if (window.GLWorlds && GLWorlds.render("spatial", glRenderState(time))) return;
   const ctx = canvasSpatial && canvasSpatial.getContext("2d");
   if (!ctx) return;
   const t = time * 0.001;
@@ -1657,47 +1192,23 @@ function renderSpatial(time) {
 }
 
 function setupSpatial() {
-  const model = document.querySelector("[data-spatial-model]");
-  const reflection = document.querySelector("[data-spatial-reflection]");
-  const waterline = document.querySelector("[data-spatial-waterline]");
+  // the tower lives in WebGL now — this only wires the HUD chrome
   const orbitBtn = document.querySelector("[data-spatial-orbit]");
   const tiltOut = document.querySelector("[data-spatial-tilt]");
   const clock = document.querySelector("[data-spatial-clock]");
-  const models = [model, reflection].filter(Boolean);
-  if (spatialOrbit) models.forEach((m) => m.classList.add("is-orbit"));
-  if (model) {
-    window.addEventListener("pointermove", (e) => {
-      if (currentWorld !== "spatial-architecture" || spatialOrbit) return;
-      const dx = (e.clientX / window.innerWidth - 0.5);
-      const dy = (e.clientY / window.innerHeight - 0.5);
-      models.forEach((m) => {
-        m.style.setProperty("--sp-rx", `${58 - dy * 24}deg`);
-        m.style.setProperty("--sp-rz", `${42 + dx * 70}deg`);
-      });
-      if (tiltOut) tiltOut.textContent = `${(dx * 70).toFixed(1)}°, ${(dy * 24).toFixed(1)}°`;
-    });
-  }
-  if (orbitBtn && model) {
+  window.addEventListener("pointermove", (e) => {
+    if (currentWorld !== "spatial-architecture" || !tiltOut) return;
+    const dx = (e.clientX / window.innerWidth - 0.5);
+    const dy = (e.clientY / window.innerHeight - 0.5);
+    tiltOut.textContent = `${(dx * 40).toFixed(1)}°, ${(dy * 17).toFixed(1)}°`;
+  }, { passive: true });
+  if (orbitBtn) {
     orbitBtn.addEventListener("click", () => {
       spatialOrbit = !spatialOrbit;
-      if (spatialOrbit) {
-        models.forEach((m) => {
-          m.style.removeProperty("--sp-rx");
-          m.style.removeProperty("--sp-rz");
-          m.classList.add("is-orbit");
-        });
-      } else {
-        models.forEach((m) => {
-          m.classList.remove("is-orbit");
-          m.style.setProperty("--sp-rx", "58deg");
-          m.style.setProperty("--sp-rz", "42deg");
-        });
-      }
       orbitBtn.textContent = `auto-orbit: ${spatialOrbit ? "on" : "off"}`;
       orbitBtn.setAttribute("aria-pressed", spatialOrbit ? "true" : "false");
     });
   }
-  if (waterline) waterline.style.setProperty("--sp-water-shift", `${(scrollProgress * 46).toFixed(1)}px`);
   if (clock) {
     const tick = () => {
       const d = new Date();
@@ -1935,8 +1446,11 @@ function setupGenerative() {
 function init() {
   // Acquire the WebGL2 context BEFORE anything grabs a 2D context on the same
   // canvas — once a canvas has a 2D context, getContext('webgl2') returns null.
-  try { glState = initWebGL(); }
-  catch (error) { console.warn("WebGL shader fallback:", error.message); glState = null; }
+  // only the active world keeps a GL context alive (weak GPUs choke on three)
+  if (window.GLWorlds) {
+    if (!GLWorlds.ensure("cinematic", canvasCinematic)) console.warn("WebGL shader fallback: cinematic");
+  }
+  ensureWorldPipeline(currentWorld);
   resizeCanvases();
   makeAsciiCloud();
   setupReveal();
@@ -1965,9 +1479,11 @@ window.addEventListener("pointermove", (event) => {
   pointer.tx = event.clientX;
   pointer.ty = event.clientY;
 }, { passive: true });
-// click = inject a shock impulse into the particle field (cinematic-dark)
+// click = inject a shock impulse into the active render layer
 window.addEventListener("pointerdown", () => {
   if (currentWorld === "cinematic-dark") { cnShock = 1; pulse = 1; }
+  if (currentWorld === "spatial-architecture") { cnShock = 1; pulse = 0.6; }   // water ripple
+  if (currentWorld === "luxury-alcove") { cnShock = 0.8; pulse = 0.5; }        // candle surge
   if (currentWorld === "generative-system") pulse = 1;
 }, { passive: true });
 

@@ -10,6 +10,10 @@ import sys
 from pathlib import Path
 
 from PIL import Image
+import os as _os
+_pw = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", ".pw-browsers"))
+if _os.path.isdir(_pw):
+    _os.environ["PLAYWRIGHT_BROWSERS_PATH"] = _pw
 from playwright.sync_api import sync_playwright
 
 
@@ -150,7 +154,7 @@ def sample(page, world):
               rcActive: count(".rc-panel.is-active"),
               lxOrnament: val(q(".lx-ornament-wrap"), "transform"),
               lxActive: count(".lx-room.is-active,.lx-step.is-active"),
-              spP: q(".sp-stage") ? q(".sp-stage").style.getPropertyValue("--sp-p").trim() : "",
+              spP: root ? root.style.getPropertyValue("--sp-p").trim() : "",
               spWater: q("[data-spatial-waterline]") ? q("[data-spatial-waterline]").style.getPropertyValue("--sp-water-shift").trim() : "",
               spCurrent: count(".sp-stratum.is-current"),
               fkActive: count(".fk-index a.is-active"),
@@ -199,7 +203,8 @@ def run():
         page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         page.on("pageerror", lambda e: errors.append(f"PAGEERROR: {e}"))
         page.goto(URL, wait_until="load", timeout=45000)
-        page.wait_for_timeout(1600)
+        page.wait_for_selector("body.is-loaded", timeout=20000)
+        page.wait_for_timeout(2400)            # entrance reveal completes
 
         # Cinematic dark: WebGL pixel field reacts to pointer + click.
         click_world(page, "cinematic-dark")

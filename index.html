@@ -6,7 +6,7 @@
     <title>CoolLanding — Anti-Template Framework</title>
     <meta name="description" content="CoolLanding is an open-source anti-template framework for cinematic landing pages. Compose one Style World + a handful of Mechanics + one Signature Mechanic. Switch between eight live worlds in this demo.">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ff3c08' d='M16 2 29 12 24 29H8L3 12z'/%3E%3C/svg%3E">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260612">
   </head>
   <body data-world="cinematic-dark">
     <!-- World 1 background canvas (WebGL shader) -->
@@ -113,9 +113,9 @@
               <dl>
                 <div><dt>world</dt><dd>cinematic-dark</dd></div>
                 <div><dt>mechanics</dt><dd>04 active</dd></div>
-                <div><dt>signature</dt><dd>pointer warps shader</dd></div>
+                <div><dt>signature</dt><dd>the signal ring sigil</dd></div>
                 <div><dt>palette</dt><dd>black · cyan · ember</dd></div>
-                <div><dt>mode</dt><dd>cursor-driven</dd></div>
+                <div><dt>mode</dt><dd>scroll-armed orbit</dd></div>
               </dl>
               <footer>
                 <span>pointer</span>
@@ -128,7 +128,7 @@
             <span data-cn-time>00:00:00</span>
             <span>shader compiled</span>
             <span>scroll arms the orbit</span>
-            <span>pointer is the protagonist</span>
+            <span>the sigil is the protagonist</span>
           </div>
         </section>
 
@@ -172,9 +172,9 @@
             </article>
             <article class="cn-card" data-reveal>
               <div class="cn-card-num">04</div>
-              <h3>signature: warped void</h3>
-              <p>The cursor bends the shader. The only mechanic this brand could own.</p>
-              <code>uv -= mouseDir * 0.08</code>
+              <h3>signature: the signal ring</h3>
+              <p>A raymarched chrome sigil with an emissive core — a 3D anchor object no other brand owns.</p>
+              <code>sdTorus(R*q, vec2(1.0, .135))</code>
             </article>
           </div>
         </section>
@@ -200,11 +200,11 @@
             <aside class="cn-orbit-readout" aria-hidden="true">
               <header><span class="cn-hud-dot"></span><span>field · live</span></header>
               <dl>
-                <div><dt>particles</dt><dd data-orbit-particles>16,384</dd></div>
-                <div><dt>camera.z</dt><dd data-orbit-camz>3.20</dd></div>
+                <div><dt>particles</dt><dd data-orbit-particles>65,536</dd></div>
+                <div><dt>camera.z</dt><dd data-orbit-camz>3.35</dd></div>
                 <div><dt>shock</dt><dd data-orbit-shock>0.00</dd></div>
                 <div><dt>blend</dt><dd>additive HDR</dd></div>
-                <div><dt>passes</dt><dd>sim · pts · bright · blur×3 · comp</dd></div>
+                <div><dt>passes</dt><dd>bg · sigil · sim · pts · bloom×3 · streak · comp</dd></div>
               </dl>
             </aside>
           </div>
@@ -212,8 +212,8 @@
 
         <!-- Stat band: numbers count up on reveal -->
         <section class="cn-stats" aria-label="System stats">
-          <div class="cn-stat" data-reveal><b data-count="16384">0</b><span>GPU particles</span></div>
-          <div class="cn-stat" data-reveal><b data-count="6">0</b><span>render passes</span></div>
+          <div class="cn-stat" data-reveal><b data-count="65536">0</b><span>GPU particles</span></div>
+          <div class="cn-stat" data-reveal><b data-count="10">0</b><span>render passes</span></div>
           <div class="cn-stat" data-reveal><b data-count="60" data-count-suffix="fps">0</b><span>target frame-rate</span></div>
           <div class="cn-stat" data-reveal><b data-count="8">0</b><span>style worlds</span></div>
         </section>
@@ -781,23 +781,8 @@
             </div>
           </div>
 
-          <div class="sp-stage" aria-hidden="true">
-            <div class="sp-waterline" data-spatial-waterline></div>
-            <div class="sp-model" data-spatial-model>
-              <div class="sp-slab sp-slab-1"></div>
-              <div class="sp-slab sp-slab-2"></div>
-              <div class="sp-slab sp-slab-3"></div>
-              <div class="sp-slab sp-slab-core"></div>
-              <div class="sp-slab sp-slab-roof"></div>
-            </div>
-            <div class="sp-model sp-model-reflection" data-spatial-reflection>
-              <div class="sp-slab sp-slab-1"></div>
-              <div class="sp-slab sp-slab-2"></div>
-              <div class="sp-slab sp-slab-3"></div>
-              <div class="sp-slab sp-slab-core"></div>
-              <div class="sp-slab sp-slab-roof"></div>
-            </div>
-          </div>
+          <!-- The tower itself is real: a raymarched WebGL louvre stack with a
+               water reflection, rendered on #spatial-field behind this DOM. -->
 
           <aside class="sp-index" aria-label="Proximity index" data-reveal>
             <header><span>proximity index</span><span data-spatial-clock>00:00</span></header>
@@ -1110,6 +1095,7 @@
     </main>
 
     <div class="scroll-meter" aria-hidden="true"><span data-scroll-meter></span></div>
-    <script src="main.js"></script>
+    <script src="glworlds.js?v=20260612"></script>
+    <script src="main.js?v=20260612"></script>
   </body>
 </html>

@@ -7,6 +7,10 @@ screenshot. Output lands in research/refs/<site>/ with _libs.json + _scan.json.
 """
 import os, re, json, hashlib
 from urllib.parse import urlparse
+import os as _os
+_pw = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", ".pw-browsers"))
+if _os.path.isdir(_pw):
+    _os.environ["PLAYWRIGHT_BROWSERS_PATH"] = _pw
 from playwright.sync_api import sync_playwright
 
 OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "research", "refs"))

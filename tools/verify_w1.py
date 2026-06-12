@@ -1,5 +1,9 @@
 """Deep-check World 01 Cinematic: hero, scroll-reactive shader, new sections."""
 import os
+import os as _os
+_pw = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", ".pw-browsers"))
+if _os.path.isdir(_pw):
+    _os.environ["PLAYWRIGHT_BROWSERS_PATH"] = _pw
 from playwright.sync_api import sync_playwright
 
 URL = "http://127.0.0.1:5189/"

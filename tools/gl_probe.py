@@ -1,6 +1,10 @@
 """Find a Chromium launch config that exposes WebGL2 + EXT_color_buffer_float
 (needed to render to FLOAT/HALF_FLOAT targets) so we can validate the real
 particle+bloom pipeline rather than the 2D fallback."""
+import os as _os
+_pw = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", ".pw-browsers"))
+if _os.path.isdir(_pw):
+    _os.environ["PLAYWRIGHT_BROWSERS_PATH"] = _pw
 from playwright.sync_api import sync_playwright
 
 PAGE = "data:text/html,<canvas id=c></canvas>"

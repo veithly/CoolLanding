@@ -81,10 +81,10 @@ h1, h2, h3, p { margin-top: 0; }
   pointer-events: none;
   display: none;
 }
-body[data-world="cinematic-dark"] .world-bg-cinematic { display: block; background: var(--black); }
+body[data-world="cinematic-dark"] .world-bg-cinematic { display: block; background: #04050c; }
 body[data-world="editorial-interference"] .world-bg-editorial { display: block; }
-body[data-world="luxury-alcove"] .world-bg-luxury { display: block; }
-body[data-world="spatial-architecture"] .world-bg-spatial { display: block; }
+body[data-world="luxury-alcove"] .world-bg-luxury { display: block; background: #120d09; }
+body[data-world="spatial-architecture"] .world-bg-spatial { display: block; background: #d9dcd4; }
 body[data-world="generative-system"] .world-bg-generative { display: block; background: #06070a; }
 
 /* World visibility */
@@ -178,10 +178,15 @@ main { position: relative; z-index: 1; }
   line-height: 1.55;
 }
 .skill-primitives-cinematic,
-.skill-primitives-spatial,
 .skill-primitives-generative {
   --primitive-bg: rgba(7, 13, 16, 0.72);
   --primitive-border: rgba(94, 251, 255, 0.22);
+}
+.skill-primitives-spatial {
+  /* daylight world: ivory cards over the raymarched sky */
+  --primitive-bg: rgba(245, 247, 242, 0.90);
+  --primitive-border: rgba(31, 38, 43, 0.20);
+  --primitive-muted: rgba(31, 38, 43, 0.66);
 }
 .skill-primitives-editorial,
 .skill-primitives-papercraft {
@@ -288,6 +293,7 @@ body:not([data-world="cinematic-dark"]) .loader {
   text-transform: uppercase;
   transform: translate(14px, 16px);
 }
+.cursor-label:empty { display: none; }
 .cursor-dot.is-active, .cursor-label.is-active { opacity: 1; }
 .cursor-dot.is-hot { transform: translate(-50%, -50%) scale(1.7); }
 
@@ -497,9 +503,8 @@ body[data-world="cinematic-dark"] {
   min-height: 100svh;
   overflow: hidden;
   padding: 120px 5vw 96px;
-  background:
-    radial-gradient(circle at 50% 48%, rgba(94, 251, 255, 0.08), transparent 38%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.62));
+  /* the WebGL scene carries the hero — only a slight text-protection scrim */
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(2, 3, 8, 0.38));
 }
 .cn-grid {
   position: absolute;
@@ -513,15 +518,16 @@ body[data-world="cinematic-dark"] {
   mix-blend-mode: screen;
 }
 .ascii-cloud {
+  /* ambient code noise — pushed to the edge so the sigil owns the center */
   position: absolute;
-  inset: 18vh 30vw auto 30vw;
+  inset: 14vh auto auto 4vw;
   z-index: 1;
-  min-height: 320px;
-  color: rgba(94, 251, 255, 0.36);
+  min-height: 280px;
+  color: rgba(94, 251, 255, 0.16);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.05;
-  text-align: center;
+  text-align: left;
   white-space: pre;
   pointer-events: none;
   mix-blend-mode: screen;
@@ -2393,8 +2399,9 @@ body[data-world="luxury-alcove"] {
 /* WORLDS 05–08 — palettes + switcher/cursor theming               */
 /* =============================================================== */
 body[data-world="spatial-architecture"] {
-  --bg: #0e1418; --fg: #eaf1f3; --fg-muted: rgba(234,241,243,0.62);
-  --accent: #86d8e8; --accent-hot: #f0a35a; --rule: rgba(234,241,243,0.14);
+  /* light architectural daylight — the raymarched scene carries the values */
+  --bg: #dfe3da; --fg: #1f262b; --fg-muted: rgba(31,38,43,0.66);
+  --accent: #1f7e95; --accent-hot: #c96f24; --rule: rgba(31,38,43,0.18);
 }
 body[data-world="festival-kinetic"] {
   --bg: #0a0a12; --fg: #ffffff; --fg-muted: rgba(255,255,255,0.66);
@@ -2480,40 +2487,9 @@ body[data-world="generative-system"] .cursor-label { background: var(--accent); 
 .sp-ghost:hover { color: var(--fg); border-color: var(--accent); }
 
 .sp-stage {
+  /* the louvre tower + waterline are rendered in WebGL behind this column */
   position: relative;
-  display: grid;
-  place-items: center;
   min-height: 64vh;
-  perspective: 1400px;
-  isolation: isolate;
-}
-.sp-stage::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 49%;
-  width: min(720px, 88vw);
-  height: min(330px, 36vh);
-  transform: translate(-50%, 18%) rotateX(72deg);
-  border: 1px solid rgba(134,216,232,0.22);
-  background:
-    linear-gradient(90deg, rgba(134,216,232,0.12), rgba(255,255,255,0.03), rgba(134,216,232,0.10)),
-    repeating-linear-gradient(90deg, rgba(234,241,243,0.16) 0 1px, transparent 1px 42px);
-  box-shadow: 0 28px 80px rgba(8,12,16,0.7), inset 0 0 42px rgba(134,216,232,0.08);
-  opacity: 0.74;
-  z-index: -2;
-}
-.sp-stage::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 54%;
-  width: min(680px, 82vw);
-  height: 1px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, rgba(134,216,232,0.86), rgba(240,163,90,0.55), transparent);
-  box-shadow: 0 0 24px rgba(134,216,232,0.32);
-  z-index: 4;
 }
 .sp-waterline {
   position: absolute;

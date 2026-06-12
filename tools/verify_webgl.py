@@ -6,6 +6,10 @@
 Saves before/after screenshots for visual inspection.
 """
 import os
+import os as _os
+_pw = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", ".pw-browsers"))
+if _os.path.isdir(_pw):
+    _os.environ["PLAYWRIGHT_BROWSERS_PATH"] = _pw
 from playwright.sync_api import sync_playwright
 
 URL = "http://127.0.0.1:5189/"
@@ -78,7 +82,8 @@ def run():
         page.on("console", lambda m: (errors if m.type == "error" else warns).append(m.text))
         page.on("pageerror", lambda e: errors.append(f"PAGEERROR: {e}"))
         page.goto(URL, wait_until="load", timeout=45000)
-        page.wait_for_timeout(2600)            # let loader finish + a few sim frames
+        page.wait_for_selector("body.is-loaded", timeout=20000)   # loader done
+        page.wait_for_timeout(2600)            # entrance reveal + a few sim frames
 
         probe1 = page.evaluate(PROBE)
         page.screenshot(path=os.path.join(OUT, "webgl_hero.png"))
